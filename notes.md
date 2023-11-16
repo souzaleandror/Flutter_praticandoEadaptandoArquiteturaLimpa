@@ -633,3 +633,527 @@ Descrever as regras de negócios da API e banco de dados.
 Parabéns por ter concluído a primeira aula!
 
 Nos vemos na próxima aula do curso!
+
+#### 16/11/2023
+
+@02-Dados, bibliotecas e acoplamento
+
+@@01
+Projeto da aula anterior
+
+Você pode revisar o seu código e acompanhar o passo a passo do desenvolvimento do nosso projeto e, se preferir, pode baixar o projeto da aula anterior.
+Bons estudos!
+
+https://github.com/alura-cursos/3117-clean_architecture/archive/refs/heads/Aula1.zip
+
+@@02
+Preparando o ambiente: instalando a biblioteca floor no projeto
+
+Neste curso, queremos salvar as entradas favoritadas pelo usuário no próprio dispositivo. Para fazer isso, usaremos uma biblioteca chamada floor.
+Passo 1: instalando a biblioteca floor
+Para instalar a biblioteca floor, basta executar o seguinte comando no terminal do projeto:
+
+flutter pub add floor 
+COPIAR CÓDIGO
+Passo 2: instalando as bibliotecas complementares
+Também, precisamos de outras bibliotecas, então vamos instalar a sqflite, a floor_generator e a build_runner. Dessa maneira, siga as instruções abaixo:
+
+1 - Instale a bilbioteca sqflite:
+
+flutter pub add sqflite
+COPIAR CÓDIGO
+2 - Instale as bibliotecas floor_generator e build_runner como dependência de desenvolvedor, pois serão usadas apenas durante o desenvolvimento:
+
+dart pub add --dev floor_generator build_runner 
+COPIAR CÓDIGO
+Ao final, o seu arquivo pubspec.yaml deve estar assim:
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  floor: ^1.4.2
+  sqflite: ^2.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+  floor_generator: ^1.4.2
+  build_runner: ^2.4.6
+COPIAR CÓDIGO
+Até aqui, tudo tranquilo? Se sentir dificuldade, mande sua dúvida no fórum ou no discord!
+
+@@03
+A camada de dados e acoplamentos
+
+Sairemos da camada de domínio, o núcleo, e expandiremos para a camada de dados, onde de fato guardamos as informações no banco de dados.
+Instalando o Floor
+Para isso, podemos utilizar a ferramenta Floor. Esta biblioteca será instalada em nosso projeto para nos ajudar nas operações de Select, Delete e Insert.
+
+Existem algumas maneiras de instalar a biblioteca. Poderíamos usar o Flutter PubEdge e adicionar a biblioteca por lá ou, como eu recomendo para acompanhamento deste curso, adicioná-la diretamente no próprio PubSpec.
+
+Arquivo pubspec.yaml no repositório do GitHub
+No arquivo pubspec.yaml, vamos seguir para as dependências e adicionar as seguintes linhas. Vamos inserir estas dependências depois de cupertino_icons, na linha 37, para configurar o Floor.
+
+Para o Floor, devemos chamar floor: ^1.4.2. Outra dependência que precisamos instalar é o sqflite, que será na versão 2.3.0.
+
+pubspec.yaml
+# código omitido
+
+cupertino_icons: ^1.0.2
+floor: ^1.4.2
+sqflite: ^2.3.0
+
+# código omitido
+COPIAR CÓDIGO
+Essas são dependências comuns (Dependencies), não devemos confundi-las com as DevDependencies. Além disso, haverá a adição de algumas informações na parte das dependências.
+
+Em seguida, descemos até o DevDependencies e, na linha 50, adicionemos o floor_generator na mesma versão do Floor, que é a versão 1.4.2; e o build_runner na versão 2.4.6.
+
+pubspec.yaml
+# código omitido
+
+flutter_lints: ^2.0.0
+floor_generator: ^1.4.2
+build_runner: ^2.4.6
+
+# código omitido
+COPIAR CÓDIGO
+Salvamos o arquivo pubspec.yaml e, teoricamente, ele executará um Flutter PubGet. Minha IDE já fez o Flutter PubGet para poder buscar as extensões e bibliotecas.
+
+No entanto, caso seja necessário fazer isso manualmente, vá ao seu terminal e digite flutter pub get.
+
+flutter pub get
+COPIAR CÓDIGO
+Dessa forma, ele resolverá as dependências adicionadas no pubspec.yaml.
+
+Até o momento, conseguimos instalar o Floor, mas qual era a necessidade de instalá-lo?
+
+Precisamos apenas realizar as operações de Select, Delete e Insert. Essas são as três funcionalidades que precisamos para esse momento, a fim de salvar as informações no banco de dados.
+
+É muito importante que, ao escolhermos uma biblioteca para usar no projeto, não optemos por um recurso que realiza inúmeras tarefas diferentes. O ideal é que cada biblioteca que adicionamos ao nosso projeto cumpra uma função muito específica.
+
+Por que uma função específica é importante?
+
+Se encontrarmos uma biblioteca que, além de gerenciar o banco de dados, desenha na tela, faz requisições e até nos prepara um café, aparentemente ela resolve todos os nossos problemas.
+
+No entanto, caso essa biblioteca apresente problemas em alguma atualização e acabe causando falhas em nossa aplicação, teremos que reescrever todo o código.
+
+Acoplamento
+Portanto, a orientação do Clean Code é sobre o baixo acoplamento.
+
+As bibliotecas devem estar o mínimo acopladas possível em nosso aplicativo.
+O banco de dados que estamos utilizando, o Floor, servirá para executar as três funções: Insert, Delete e Select. Se precisarmos substituí-lo por outro banco de dados no futuro, não será um problema. Conseguiremos fazer isso de maneira fácil.
+
+Claro que há suas particularidades, como tudo em programação depende.
+
+Não conseguimos criar um projeto 100% desacoplado. É praticamente impossível, pois a própria linguagem Dart já é um acoplamento do nosso projeto. Isso ocorre porque a estrutura que usamos para escrever as classes, as chamadas e declarações de função podem ser diferentes se usarmos Python, Java, JavaScript, por exemplo.
+
+Logo, já temos um acoplamento. É impossível criar algo 100% desacoplado.
+
+Conclusão
+Sempre haverá algum tipo de acoplamento, mas o importante é que, se for acoplar, acople na menor quantidade de coisas possíveis. Portanto, agora temos o Floor e poderemos, finalmente, utilizá-lo.
+
+Vamos iniciar a criação do nosso banco de dados no próximo vídeo!
+
+https://github.com/alura-cursos/3117-clean_architecture/blob/Aula2/pubspec.yaml
+
+@@04
+Para saber mais: aprofundando a camada de dados
+
+ Imagem que mostra quatro esferas, uma dentro da outra, que representam as camadas da arquitetura limpa. A camada mais interior, na cor cinza, é a domínio. Em destaque, na segunda esfera, há a camada de dados na cor azul
+A segunda camada que vamos implementar é chamada camada de dados!
+
+Se a camada domínio era o núcleo que guarda as entidades e demais informações imutáveis do projeto, na camada de dados teremos o código relacionado às bibliotecas que lidam com dados de uma forma geral (incluindo o banco de dados).
+
+@@05
+Para saber mais: acoplamento e desacoplamento de bibliotecas
+
+Se todos os módulos de um projeto estiverem muito interligados, ou seja, se as partes do nosso código dependem muito umas das outras, uma pequena alteração no código pode causar grandes problemas e erros no aplicativo. Aqui entram os conceitos de acoplamento e desacoplamento.
+Acoplamento e desacoplamento: O que é?
+Acoplamento e desacoplamento são conceitos em programação de software que se referem à medida em que nossa aplicação depende de um componente (ou biblioteca, em nosso caso), tanto em termos de entrada e saída de dados, quanto a sua estrutura.
+
+Acoplamento é, essencialmente, o grau com qual uma biblioteca (ou módulo/componente/classe) depende de outras partes do código. Neste caso, temos um alto grau de dependência.
+
+Já o desacoplamento é o oposto e se refere a isolar suas funcionalidades/módulos/classes de forma que elas sejam autônomas, minimizando as dependências. Em nosso projeto, estamos criando camadas específicas e autônomas, ou seja, estamos aplicando desacoplamento ao projeto Hyrule.
+
+Para evitar erros no código e facilitar seu conserto, vamos deixar a biblioteca floor o mais independente possível das demais camadas.
+Por que isso é importante?
+O objetivo de trabalharmos com um código desacoplado é torná-lo mais fácil de manter, expandir e entender.
+
+Com um código altamente acoplado, uma pequena alteração em uma parte do código pode causar efeitos colaterais inesperados em outros lugares, tornando muito difícil identificar e corrigir erros. Além disso, é muito mais difícil reutilizar partes do código se ele estiver altamente interconectado.
+
+É praticamente impossível de criar um projeto 100% desacoplado. A própria linguagem de programação é um tipo de acoplamento, já que cada biblioteca/módulo precisa ser escrita na linguagem correspondente.
+Exemplos práticos
+Vamos pegar um exemplo prático: imagine um projeto onde temos uma biblioteca que consegue desenhar telas, lidar com banco de dados, faz requisição para API e estamos utilizando todas essas funcionalidades! Se a biblioteca parar de funcionar por algum motivo, grande parte da aplicação vai parar de funcionar também. Isso é um ótimo exemplo de acoplamento.
+
+Em vez de utilizar uma biblioteca que “faz tudo”, o mais indicado é utilizar uma biblioteca para cada funcionalidade. Neste exemplo, utilizaríamos várias bibliotecas distintas:
+
+Uma para desenhar telas;
+Uma para fazer requisições para APIs;
+Outra apenas para lidar com banco de dados.
+Neste caso em cada biblioteca tem uma funcionalidade específica, o código fica mais desacoplado e menos dependente. Se uma biblioteca para de funcionar, temos um problema menor, pois as demais continuam funcionando.
+
+Um código com desacoplamento seria o ideal. Porém, no mundo real, as coisas são mais complexas. As tecnologias mudam, nossas necessidades podem mudar e tudo pode variar. O importante é conseguir se adaptar de acordo com as dificuldades que encontramos.
+
+Conclusão
+Ao entender os conceitos de acoplamento e desacoplamento, você terá mais noção de como escrever um código claro, melhor de consertar e menos sujeito a erros. É tudo uma questão de quão interconectado seu código está - e encontrar o equilíbrio faz diferença.
+
+@@06
+Criando database com floor
+
+Como vamos utilizar a biblioteca Floor? Primeiro, limpamos as abas que não estamos mais utilizando no editor de código. Além disso, como não vamos usar o emulador por agora, expandimos a tela inteira.
+Criaremos a próxima camada de dados, chamada data.
+
+Do lado esquerdo, na pasta lib, criamos na raiz do projeto uma outra pasta chamada data. Para isso, selecionamos com o botão direito do mouse em "lib" e escolhemos a opção "New Folder".
+
+Dentro da pasta data, uma nova pasta chamada dao, que é onde vão ficar nossos Data Access Objects (DAOs) (em português, "Objeto de Acesso a Dados"). Dentro dele, criaremos o arquivo database.dat.
+
+lib
+data
+dao
+database.dart
+Um detalhe importante é que a estrutura do Floor é característica da própria biblioteca. Portanto, se utilizarmos outra biblioteca de banco de dados, a implementação pode ser um pouco diferente.
+
+A forma que aplicaremos será para o floor na versão mencionada do vídeo anterior.
+
+Arquivo database.dart no repositório do GitHub
+Logo no início do arquivo database.dart, importamos alguns pacotes. O primeiro import necessário é o dart:async. O segundo import é referente ao package:floor/floor.dart. Em seguida, fazemos o import do sqflite, utilizando o nome sqflite.dart.
+
+database.dart
+import 'dart:async';
+import 'package:floor/floor.dart';
+import 'package:sqflite/sqflite.dart' as sqflite;
+COPIAR CÓDIGO
+Utilizaremos um arquivo gerado pelo build_runner para usar dentro do database.dart. Para importar esse arquivo gerado dentro do arquivo atual, usamos a diretiva part.
+
+Assim, o part será database.g.dart. Esse arquivo será gerado automaticamente após executarmos o build_runner.
+
+database.dart
+import 'dart:async';
+import 'package:floor/floor.dart';
+import 'package:sqflite/sqflite.dart' as sqflite;
+
+part 'database.g.dart';
+COPIAR CÓDIGO
+Por enquanto, uma mensagem de erro pode aparecer. Observem que abaixo de 'database.g.dart' temos um sublinhado na cor vermelha, mas assim que o build_runner for executado, o erro desaparecerá.
+
+Usamos a anotação @Database() para indicar que criaremos um banco de dados (database). Algumas informações devem ser passadas para dentro dessa anotação. Primeiro, a versão do nosso banco de dados (version), que será 1.
+
+Também precisamos informar quais são as tabelas (entities) que teremos dentro do banco de dados. No caso, teremos apenas uma entidade que será o vetor ([]), sabendo que o vetor que desejamos passar é o Entry: [Entry].
+
+database.dart
+import 'dart:async';
+import 'package:floor/floor.dart';
+import 'package:sqflite/sqflite.dart' as sqflite;
+
+part 'database.g.dart';
+
+@Database(version: 1, entities: [Entry])
+COPIAR CÓDIGO
+Agora, podemos começar a escrever nossa classe abstrata AppDatabase que deve estender do FloorDatabase : abstract class AppDatabase extends FloorDatabase {}.
+
+Neste momento, Entry apresenta um problema pois ainda não foi importado. Observem que há um sublinhado na cor vermelha abaixo. Selecionamos o ícone de lâmpada e escolhemos a opção "import library '../../domain/models/entry.dart'".
+
+database.dart
+import 'dart:async';
+import 'package:floor/floor.dart';
+import 'package:hyrule/data/dao/entry_dao.dart';
+import 'package:sqflite/sqflite.dart' as sqflite;
+
+import '../../domain/models/entry.dart';
+
+part 'database.g.dart';
+
+@Database(version: 1, entities: [Entry])
+abstract class AppDatabase extends FloorDatabase {
+
+}
+COPIAR CÓDIGO
+Assim, importamos o Entry de domínio, models.entry.dart.
+
+A classe entry foi anotada no database, porém o Floor ainda não reconhece essa classe como uma entidade. No arquivo entry.dart, precisamos adicionar as anotações necessárias para que o Floor identifique a classe como uma entidade.
+
+Arquivo entry.dart no repositório do GitHub
+Este processo demonstra o acoplamento que mencionei anteriormente. Mesmo que queiramos evitar acoplamentos, neste caso ele acabou ocorrendo com entry e o floor. Às notações que vamos acrescentar não vão modificar a classe de maneira extrema, mas é importante ressaltar que estamos criando acoplamentos.
+
+Acima da linha que define a classe entry vamos adicionar a anotação @entity. Agora o floor já fez o import para nós. Acima do nosso int id, adicionamos a anotação @primaryKey.
+
+entry.dart
+import 'dart:convert';
+
+import 'package:floor/floor.dart';
+
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+@entity
+class Entry {
+  @primaryKey
+  int id;
+  String name;
+
+/// código omitido
+COPIAR CÓDIGO
+Podemos salvar os dois arquivos que alteramos.
+
+Conclusão
+Para concluir, precisamos informar onde vamos implementar as funções insert, delete e select do banco de dados.
+
+Veremos isto posteriormente!
+
+@@07
+Criando o dao com floor
+
+Até agora, apenas criamos o banco de dados. Ainda precisamos criar as requisições, realizar operações de inserção, remoção e seleção. Essas funcionalidades ficarão em um arquivo separado, ainda dentro do diretório DAO.
+Criando as requisições
+Dentro de dao, criaremos um novo arquivo chamado entry_dao.dart, pois serão funções que atuam exclusivamente na tabela de entrada. Para tal, selecionamos o botão direito do mouse em dao e escolhemos a opção "New Folder".
+
+Arquivo entry_dao.dart no repositório do GitHub
+Começaremos importando o floor. Agora usaremos a anotação @dao, que indicará que estamos criando um DAO. Teremos uma classe abstrata chamada EntryDao.
+
+entry_dao.dart
+import 'package:floor/floor.dart';
+
+@dao
+abstract class EntryDao {
+
+}
+COPIAR CÓDIGO
+Começamos a adicionar nossas funções. Vamos começar com a nossa consulta (select), que será uma consulta query, @Query(). Dentro desta consulta, vamos passar como seria realizada em um banco de dados real.
+
+Portanto, faremos uma consulta para selecionar todos os registros, na verdade. Será um asterisco (*), seguido de "FROM ENTRY," que é o nome da tabela.
+
+Dessa forma, estamos recuperando todos os registros que estão dentro da tabela de entrada (entry). Essa função será do tipo Future, retornando uma lista de objetos do tipo "entry," que é o tipo correspondente ao nosso domínio ou módulo. O nome da função será getAllEntries.
+
+entry_dao.dart
+import 'package:floor/floor.dart';
+
+import '../../domain/models/entry.dart';
+
+@dao
+abstract class EntryDao {
+  @Query('SELECT * FROM ENTRY')
+  Future<List<Entry>> getAllEntries();
+COPIAR CÓDIGO
+A próxima funcionalidade será a de inserção (insert). Aqui, há um detalhe: se tentarmos inserir uma entrada com o mesmo ID para evitar duplicidade, podemos adicionar uma propriedade chamada onConflict dentro deste insert. Dessa forma, podemos especificar a estratégia onConflictStrategy do SQFLite.
+
+Essa estratégia verificará se há algum conflito e, em caso afirmativo, realizaremos uma substituição (replace), transformando assim esse insert em uma atualização, caso haja uma entrada com o mesmo ID.
+
+Esta também será uma função que retornará um Future, mas não retornará nada de fato, portanto, terá um retorno do tipo void. A função se chamará addEntry e receberá um objeto do tipo entry.
+
+entry_dao.dart
+import 'package:floor/floor.dart';
+
+import '../../domain/models/entry.dart';
+
+@dao
+abstract class EntryDao {
+  @Query('SELECT * FROM ENTRY')
+  Future<List<Entry>> getAllEntries();
+    
+  @Insert(onConflict: OnConflictStrategy.replace)
+  Future<void> addEntry(Entry entry);
+
+}
+COPIAR CÓDIGO
+A próxima função será para remoção (delete), então usaremos @delete. Essa função também retornará um Future e seu retorno será void. Ela se chamará removeEntry. Novamente, precisaremos passar como parâmetro qual entrada será removida, portanto, usaremos Entry entry.
+
+entry_dao.dart
+import 'package:floor/floor.dart';
+
+import '../../domain/models/entry.dart';
+
+@dao
+abstract class EntryDao {
+  @Query('SELECT * FROM ENTRY')
+  Future<List<Entry>> getAllEntries();
+
+  @Insert(onConflict: OnConflictStrategy.replace)
+  Future<void> addEntry(Entry entry);
+
+  @delete
+  Future<void> removeEntry(Entry entry);
+}
+COPIAR CÓDIGO
+Com isso, temos nosso DAO pronto, com as funções que serão responsáveis por adicionar, remover ou selecionar registros no banco de dados. Agora, precisamos integrá-lo ao nosso database.
+
+Integrando o DAO ao database
+Dentro do nosso database (database.dart), precisamos chamar esse DAO. Portanto, faremos a importação dele, utilizando EntryDao e get entryDao, como se o retorno fosse exatamente a variável que já retornará uma instância de EntryDao.
+
+database.dart
+import 'dart:async';
+import 'package:floor/floor.dart';
+import 'package:hyrule/data/dao/entry_dao.dart';
+import 'package:sqflite/sqflite.dart' as sqflite;
+
+import '../../domain/models/entry.dart';
+
+part 'database.g.dart';
+
+@Database(version: 1, entities: [Entry])
+abstract class AppDatabase extends FloorDatabase {
+  EntryDao get entryDao;
+}
+COPIAR CÓDIGO
+Após salvar o arquivo, ainda estamos com erros porque falta esse arquivo.
+
+Verificando no terminal
+Para verificar se tudo está correto, abrimos o terminal. No terminal, executamos o BuildRunner, com o comando:
+
+flutter pub run build_runner build
+COPIAR CÓDIGO
+Agora, ele está construindo todos os pacotes do BuildRunner e gerando os arquivos.
+
+Em seguida, verificamos se o nosso arquivo database.g aparece dentro do diretório dao. Se estiver presente e sem erros, tudo está funcionando perfeitamente.
+
+Assim, temos nosso arquivo gerado, tudo importado e sem erros no nosso banco de dados. Ótimo trabalho!
+
+Até mais!
+
+@@08
+Problemas de alto acoplamento
+
+Bug detectado!
+Um aplicativo de gestão de pessoas parou de funcionar.
+
+Ao analisá-lo, você identificou que ele utiliza uma biblioteca para gerenciar todas as interações com os usuários: criação de modelos, requisições para API, armazenamento no banco de dados etc!
+
+Então, a biblioteca quebrou devido a um problema de segurança, o que fez o aplicativo não funcionar mais.
+
+Como essa situação ilustra os problemas de alto acoplamento na arquitetura de software?
+
+A situação não está relacionada ao acoplamento, pois a falha veio da biblioteca, não da aplicação.
+ 
+O uso dependente do seu software em uma biblioteca específica é uma forma de acoplamento. A falha da biblioteca ilustra claramente como o acoplamento pode levar a problemas significativos.
+Alternativa correta
+O problema da situação é o uso inadequado da biblioteca, não o acoplamento.
+ 
+Embora o uso inadequado de bibliotecas possa levar a problemas, neste contexto, o problema é claramente o alto grau de acoplamento. Se a sua aplicação depende tanto de uma única biblioteca que falha total quando a biblioteca falha, isso é alto acoplamento.
+Alternativa correta
+A aplicação está fortemente acoplada à biblioteca, o que significa que terá que ser quase totalmente reescrita para funcionar sem ela.
+ 
+Esse é um exemplo clássico dos problemas com o alto acoplamento. Se uma única falha ou mudança em uma biblioteca ou ferramenta interrompe o funcionamento completo do seu software, você tem um alto grau de acoplamento.
+Alternativa correta
+Problemas de segurança não são relacionados ao acoplamento.
+
+@@09
+Faça como eu fiz: utilizando bibliotecas
+
+Nesta aula, você aprendeu sobre a importância de evitar alto acoplamento mas também que é quase impossível uma aplicação não ter acoplamento algum. Então, instalamos algumas bibliotecas necessárias:
+floor (versão ^1.4.2);
+sqflite (versão ^2.3.0);
+floor_generator (versão ^1.4.2);
+build_runner (versão ^2.4.6).
+Caso você não as tenha instalado, pode fazer isso agora.
+Com as bibliotecas instaladas, siga os passos a seguir:
+
+Utilize a biblioteca floor e sqflite para o nosso banco de dados;
+Crie o arquivo database.dart;
+Construa o entry_dao.dart para as operações de listar, inserir, atualizar e remover uma entrada.
+Bons estudos!
+
+Caso queira mais detalhes sobre como implementar essa parte da camada de dados da aplicação, aqui vai um passo a passo:
+1 - No arquivo pubspec.yaml, adiciona as seguintes bibliotecas:
+
+a) floor (versão ^1.4.2);
+b) sqflite (versão ^2.3.0);
+c) floor_generator (versão ^1.4.2);
+d) build_runner (versão ^2.4.6).
+    dependencies:
+      flutter:
+        sdk: flutter
+      cupertino_icons: ^1.0.2
+      floor: ^1.4.2
+      sqflite: ^2.3.0
+    
+    dev_dependencies:
+      flutter_test:
+      flutter_lints: ^2.0.0
+      floor_generator: ^1.4.2
+      build_runner: ^2.4.6
+COPIAR CÓDIGO
+2 - Na pasta lib:
+
+a) Crie uma pasta chamada data;
+b) E dentro de data, crie outra pasta chamada dao;
+c) Dentro de dao crie um arquivo chamado database.dart, e utilizando o floor, crie um database:
+        import 'dart:async';
+        import 'package:floor/floor.dart';
+        import 'package:sqflite/sqflite.dart' as sqflite;
+        
+        import '../../domain/models/entry.dart';
+        
+        part 'database.g.dart';
+        
+        @Database(version: 1, entities: [Entry])
+        abstract class AppDatabase extends FloorDatabase {
+        
+        }
+COPIAR CÓDIGO
+3 - Agora, na entidade Entry, que está na pasta lib/domain/models/entry.dart:
+
+a) Adicione a label de entity e primaryKey:
+        import 'dart:convert';
+        
+        import 'package:floor/floor.dart';
+        
+        @entity
+        class Entry { 
+          @primaryKey
+          int id;
+          String name;
+          String image;
+          String description;
+          String commonLocations;
+          String category;
+            //...
+        }
+COPIAR CÓDIGO
+4 - Crie a classe dao que vai realizar as operações de listar, inserir, atualizar e remover uma entrada, tudo isso utilizando o floor:
+
+    import 'package:floor/floor.dart';
+    
+    import '../../domain/models/entry.dart';
+    
+    @dao
+    abstract class EntryDao {
+        //método para buscar entradas
+      @Query('SELECT * FROM ENTRY')
+      Future<List<Entry>> getAllEntries();
+    
+        //método para adicionar ou atualizar entradas
+      @Insert(onConflict: OnConflictStrategy.replace)
+      Future<void> addEntry(Entry entry);
+    
+        //método para deletar entradas
+      @delete
+      Future<void> removeEntry(Entry entry);
+    }
+COPIAR CÓDIGO
+5 - Novamente, em database.dart agora precisamos inserir o EntryDao que acabamos de criar:
+
+    /...
+    
+    @Database(version: 1, entities: [Entry])
+    abstract class AppDatabase extends FloorDatabase {
+        //EntryDao
+        EntryDao get entryDao;
+    }
+COPIAR CÓDIGO
+Dessa maneira, criamos uma parte da camada de dados da aplicação, responsável pelo banco de dados!
+
+Caso queira conferir o código feito em curso, acesse o link do repositório no GitHub.
+
+https://github.com/alura-cursos/3117-clean_architecture/archive/refs/heads/Aula2.zip
+
+@@10
+O que aprendemos?
+
+Nessa aula, você aprendeu a:
+Criar parte da camada de dados da aplicação:
+Como listar, adicionar, atualizar e remover dados;
+Como criar um database com as bibliotecas floor e sqflite;
+Saber quando e como acoplar a aplicação para evitar grandes problemas em um aplicativo Flutter.
+Parabéns por ter concluído a segunda aula!
+
+Nos vemos na próxima aula do curso!
