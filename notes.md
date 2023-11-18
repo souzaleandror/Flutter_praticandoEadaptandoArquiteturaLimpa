@@ -1536,3 +1536,403 @@ Instalar a biblioteca DIO;
 Utilizar a biblioteca dentro do projeto;
 Aplicar a camada utils, entendendo sua utilidade para um projeto.
 Parabéns por ter concluído mais uma aula. Bons estudos!
+
+@04-Controller e workflow
+
+@@01
+Projeto da aula anterior
+
+Você pode revisar o seu código e acompanhar o passo a passo do desenvolvimento do nosso projeto e, se preferir, pode baixar o projeto da aula anterior.
+Bons estudos!
+
+@@02
+Entendendo e aplicando a camada controller
+
+Já temos nossas funções para adicionar e remover uma entrada do banco de dados, mostrar as entradas do banco de dados, e também fizemos as requisições para a API.
+No entanto, ainda não implementamos nosso workflow (fluxo de trabalho), que seria nossa regra de negócios, as nossas interfaces. Esses são os lugares onde realmente faremos a lógica da aplicação. Como faremos a ponte de comunicação entre as telas e nossa regra de negócios?
+
+Entendendo e aplicando a camada controller
+Podemos usar como referência outro padrão de arquitetura: o MVC (Model-View-Controller). Se você já trabalhou com MVC, deve ter pensado em controllers (controladores). Para quem ainda não conhece, no MVC, temos a view e a parte do back-end, onde temos nossos modelos e tudo mais.
+
+Para comunicar entre essa parte do back-end e a view (ou o front-end), o MVC utiliza os controladores. É nos controladores onde fica realmente a implementação da regra de negócios. A view, ou front-end, apenas chama as funções do controlador, e dentro do controlador será chamado o banco de dados e assim por diante.
+
+A partir da ideia do controller, podemos implementar esse conceito, ou seja, essa nova camada dentro do nosso projeto.
+
+Dentro de "lib", criaremos uma nova pasta, que será uma nova camada chamada "controllers". Em "controllers", teremos dois arquivos:
+
+O primeiro será o controller do banco de dados, que podemos chamar de dao_controller.dart;
+O outro arquivo será o da API, que abordaremos mais para frente.
+Criando a classe DaoController
+Dentro de dao_controller.dart, vamos criar a classe DaoController. Como ela precisa implementar nossa regra de negócios, vamos utilizar implements DaoWorkflow.
+
+dao_controller.dart:
+import 'package:hyrule/domain/business/dao_workflow.dart';
+
+class DaoController implements DaoWorkflow {
+
+}
+COPIAR CÓDIGO
+Criando um banco de dados
+Nesse momento, observe que temos um alerta, pedindo a implementação das funções da interface que criamos. Primeiramente, precisamos criar um banco de dados.
+
+Criamos as funções usando o floor, que tem sua maneira de gerar um banco de dados. Mas precisamos chamar essa função e dizer "crie esse banco de dados", pois ele ainda não foi criado. A função está pronta e só precisamos chamá-la.
+
+No escopo da classe DaoController, vamos chamar a função para criar o banco de dados. Ela será uma Future que vai retornar EntryDao e vamos chamá-la de createDatabase(). Essa será uma função assíncrona.
+
+Nessa etapa, precisamos importar EntryDao.
+import 'package:hyrule/domain/business/dao_workflow.dart';
+import '../data/dao/entry_dao.dart';
+
+class DaoController implements DaoWorkflow {
+  Future<EntryDao> createDatabase() async {
+  
+  }
+}
+COPIAR CÓDIGO
+A função createDatabase() precisa de algumas funcionalidades do floor. A sintaxe que implementaremos agora é muito específica do floor.
+
+A depender da biblioteca de gerenciamento de banco de dados que você colocou, essa implementação pode ser diferente.
+
+O que escreveremos pode ser muito específico para o floor, mas a ideia de criar o banco de dados é algo que continuará a ser necessário, independentemente da biblioteca posterior. É importante prestar atenção no fluxo do que será desenvolvido.
+
+No escopo da função createDatabase(), criaremos um final database que receberá await $FloorAppDatabase.databaseBuilder().
+
+Entre os parênteses de databaseBuilder(), definiremos o nome do banco de dados como app_database.db. Ao final, chamaremos o método build() para de fato gerar e criar o banco de dados.
+
+// código omitido
+
+class DaoController implements DaoWorkflow {
+  Future<EntryDao> createDatabase() async {
+    final database = await $FloorAppDatabase.databaseBuilder("app_database.db").build();
+  }
+}
+COPIAR CÓDIGO
+Após isso, precisamos criar também um final EntryDao, pois é o tipo de retorno que daremos para essa função. O EntryDao de nome entryDao receberá database.entryDao, que foi gerado pelo databaseBuilder().
+
+Para finalizar, adicionamos return entryDao.
+
+import 'package:hyrule/domain/business/dao_workflow.dart';
+import '../data/dao/entry_dao.dart';
+
+class DaoController implements DaoWorkflow {
+  Future<EntryDao> createDatabase() async {
+    final database = await $FloorAppDatabase.databaseBuilder("app_database.db").build();
+    final EntryDao entryDao = database.entryDao;
+    return entryDao;
+  }
+}
+COPIAR CÓDIGO
+Importando as funções
+Finalizamos nossa função createDatabase(). Agora podemos atender ao pedido da classe DaoController e importar as funções.
+
+Para isso, clicamos sobre DaoController, pressionamos "Command + ." (Ctrl + ." para Windows), selecionamos a opção "Create 3 missing overrides" e pressionamos "Enter" para gerar as três funções da interface.
+
+import 'package:hyrule/data/dao/database.dart';
+import 'package:hyrule/domain/business/dao_workflow.dart';
+import 'package:hyrule/domain/models/entry.dart';
+
+import '../data/dao/entry_dao.dart';
+
+class DaoController implements DaoWorkflow {
+  Future<EntryDao> createDatabase() async {
+    final database = await $FloorAppDatabase.databaseBuilder("app_database.db").build();
+    final EntryDao entryDao = database.entryDao;
+    return entryDao;
+  }
+
+  @override
+  Future<void> deleteEntry({required Entry entry}) {
+    // TODO: implement deleteEntry
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<Entry>> getSavedEntries() {
+    // TODO: implement getSavedEntries
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> saveEntry({required Entry entry}) async {
+    // TODO: implement saveEntry
+    throw UnimplementedError();
+  }
+}
+COPIAR CÓDIGO
+Conclusão
+A única tarefa que precisamos executar é a implementação dessas funções. Faremos isso mais tarde, ao integrar o EntryDao, chamando as funções de adicionar, remover e pegar todas as entradas do nosso banco de dados!
+
+@@03
+Implementando a regra de negócios
+
+Com a nossa interface implementada, precisamos agora realmente colocar a nossa versão, a nossa implementação, nas funções que propusemos no workflow, isto é, na nossa regra de negócios.
+Essa é uma característica bastante interessante do Clean, porque agora que temos a implementação na interface, não importa como vamos implementar ou usar o banco de dados, ou qual banco vamos usar.
+
+O que importa é que precisamos agora realmente inserir a opção de excluir uma entrada, buscar todas as entradas e salvar uma nova entrada.
+
+Implementando a regra de negócios
+Estamos usando o nosso banco de dados, o floor, e já temos um database. Portanto, precisamos apenas pegar esse database, inseri-lo no DAO, e chamar as funções do DAO em cada uma dessas funções.
+
+Trabalhando na função deleteEntry()
+Começaremos pela deleteEntry(). Como precisamos criar o database primeiro, todas as funções que temos na interface precisam ser assíncronas. Então, vamos adicionar async ao final da função deleteEntry().
+
+dao_controller.dart:
+@override
+Future<void> deleteEntry({required Entry entry}) async {
+
+}
+COPIAR CÓDIGO
+Agora vamos criar o nosso database. Para isso, no escopo da função, digitaremos final EntryDao, lembrando que a função createDatabase() retorna um EntryDao. Chamaremos de entryDao e ele receberá await createDatabase().
+
+Agora, com o DAO criado, chamamos entryDao.removeEntry(), para deletar a entrada. Recebemos entry dentro da função e, assim, removemos a entrada.
+
+@override
+Future<void> deleteEntry({required Entry entry}) async {
+  final EntryDao entryDao = await createDatabase();
+  entryDao.removeEntry(entry);
+}
+COPIAR CÓDIGO
+Outra questão do Clean é a nomenclatura. A forma como escrevemos as funções e as propriedades que serão implementadas preza pela facilidade.
+Nem precisamos escrever a palavra "entry" no código; o próprio recurso de autocompletar do editor de código percebeu, não porque sabia exatamente o que queríamos fazer, mas porque o nome da função recebeu uma entrada, e a nossa função deleteEntry() precisa também de uma entrada.
+
+A consistência de nomes facilita muito e faz parte de toda a arquitetura. Uma nomenclatura clara e condizente com o que fazemos facilita muito a nossa tarefa como pessoas desenvolvedoras e este é um ótimo exemplo disso.
+
+Trabalhando na função getSavedEntries()
+A próxima função será a getSavedEntries(), que também deve ser uma função assíncrona. Para criar o database, digitamos a mesma linha usada na função anterior, ou seja, final EntryDao entryDao = await createDatabase().
+
+Uma vez criado o database, precisamos retornar a lista. Para isso, usamos a função getAllEntries(), que retorna para nós uma lista de entradas.
+
+@override
+Future<List<Entry>> getSavedEntries() async {
+  final EntryDao entryDao = await createDatabase();
+  return entryDao.getAllEntries();
+}
+COPIAR CÓDIGO
+Trabalhando na função saveEntry()
+Encerraremos com a função assíncrona saveEntry(), para salvar uma entrada. A primeira linha no escopo da função será a mesma que a das funções anteriores, sem segredo. Para finalizar, chamamos entryDao seguido do método addEntry(), que recebe entry.
+
+@override
+Future<void> saveEntry({required Entry entry}) async {
+  final EntryDao entryDao = await createDatabase();
+  entryDao.addEntry(entry);
+}
+COPIAR CÓDIGO
+Com isso, finalizamos o nosso controller!
+
+@@04
+Construindo o API controller
+
+Agora, podemos criar o controller da nossa API!
+Construindo o API controller
+Assim como fizemos com o DaoController, vamos criar um novo arquivo dentro de "controllers", chamado api_controller.dart.
+
+Criando a classe ApiController
+Exatamente da mesma forma que fizemos com o DaoController, vamos criar uma classe ApiController que precisa implementar o API Workflow, ou seja, implements ApiWorkflow.
+
+api_controller.dart:
+import 'package:hyrule/domain/business/api_workflow.dart';
+
+class ApiController implements ApiWorkflow {
+
+}
+COPIAR CÓDIGO
+Novamente, a IDE reclama que precisa das funções. Porém, antes precisamos chamar a instância de DataApi. Assim, teremos que final DataApi dataApi é igual a DataApi().
+
+// código omitido
+
+class ApiController implements ApiWorkflow {
+  final DataApi dataApi = DataApi();
+}
+COPIAR CÓDIGO
+Implementando a função
+Feito isso, podemos de fato implementar a função. Para isso, clicamos sobre a classe ApiController e pressionamos "Ctrl + ." ou "Command + ." para selecionar a opção "Create 1 missing override".
+
+import 'package:hyrule/data/api/data_api.dart';
+import 'package:hyrule/domain/business/api_workflow.dart';
+import 'package:hyrule/domain/models/entry.dart';
+
+class ApiController implements ApiWorkflow {
+  final DataApi dataApi = DataApi();
+
+  @override
+  Future<List<Entry>> getEntriesByCategory({required String category}) {
+    // TODO: implement getEntriesByCategory
+    throw UnimplementedError();
+  }
+}
+COPIAR CÓDIGO
+Assim, a nossa função está criada. Agora só precisamos implementá-la do nosso jeito. O objetivo é retornar uma lista de entradas. Então, teremos o return de dataApi.getEntriesByCategory(), que recebe a categoria dentro do nome da função.
+
+// código omitido
+
+class ApiController implements ApiWorkflow {
+  final DataApi dataApi = DataApi();
+
+  @override
+  Future<List<Entry>> getEntriesByCategory({required String category}) {
+    return dataApi.getEntriesByCategory(category: category);
+  }
+}
+COPIAR CÓDIGO
+Novamente, a consistência da nomenclatura nos auxilia nesse caso.
+Temos a implementação da função de pegar as entradas por categoria.
+
+Conclusão
+Foi bem simples e breve essa parte do API controller. Porém, é interessante que agora, com esses controles prontos, podemos realmente fazer a conexão com a interface.
+
+Nosso próximo passo será a próxima camada que vamos desenvolver: a camada de apresentação (presenter). A partir dela, conforme for necessário durante a construção da interface, faremos chamadas para esses controladores.
+
+Se precisarmos acessar o DAO controller, porque precisamos de algo no banco de dados, chamamos DaoController. Se precisarmos pegar algo da API ou fazer uma requisição para a API, chamamos ApiController.
+
+Além disso, se fôssemos implementar mais funcionalidades, ou seja, quando a nossa lista de requisitos fosse maior ou comportasse mais itens, ou se a nossa aplicação tivesse mais ações a serem realizadas, adicionaríamos no workflow. O workflow, por consequência, iria adicionar nesses controllers.
+
+Dessa forma, dentro dos controllers, faríamos a implementação do que deveria realmente acontecer ao final. Como ele vai devolver o que a requisição ou o que a lista de requisitos pede?
+
+Nosso próximo passo é trabalhar com a camada presenter. Nos encontramos na próxima aula!
+
+@@05
+Implementação de controller na arquitetura limpa
+
+Surgiu um desafio: implementar o banco de dados com a biblioteca floor.
+Você já sabia sobre banco de dados e as funções de salvar, deletar e mostrar as informações dos usuários. O que precisa, agora, é de uma forma de fazer a comunicação entre o banco de dados e a interface visual.
+
+Então, você se lembra do modelo MVC (Model-View-Controller) e decide implementar controllers para resolver o problema. Nesse sentido, cria a pasta controllers e o arquivo dao_controller.dart.
+
+Pergunta: Qual código você escreveria para implementar esta funcionalidade?
+
+class UserController {
+  final UserDao userDao;
+
+  UserController(this.userDao);
+
+  Future<void> deleteUser({required User user}) async {
+    userDao.removeUser(user);
+  }
+
+  Future<List<User>> getSavedUsers() async {
+    return userDao.getAllUsers();
+  }
+
+  Future<void> saveUser({required User user}) async {
+    userDao.addUser(user);
+  }
+}
+ 
+Alternativa correta
+class UserController {
+  saveUser(User user) {
+     print("Salvar: $user");
+  }
+
+  deleteUser(User user) {
+     print("Deletar:  $user");
+  }
+
+  getSavedUsers() {
+    print("Obter todos os usuários");
+  }
+}
+ 
+Alternativa correta
+class UserController implements DaoWorkflow {
+  Future<UserDao> createDatabase() async {
+    final database = await $FloorAppDatabase.databaseBuilder("users_database.db").build();
+    final UserDao userDao = database.userDao;
+    return userDao;
+  }
+
+  @override
+  Future<void> deleteUser({required User user}) async {
+    final UserDao userDao = await createDatabase();
+    userDao.removeUser(user);
+  }
+
+  @override
+  Future<List<User>> getSavedUsers() async {
+    final UserDao userDao = await createDatabase();
+    return userDao.getAllUsers();
+  }
+
+  @override
+  Future<void> saveUser({required User user}) async {
+    final UserDao userDao = await createDatabase();
+    userDao.addUser(user);
+  }
+}
+ 
+Este código segue as diretivas de arquitetura limpa, implementando um controller entre a UI e a camada de dados da aplicação. A camada controller apenas controla as operações do DAO e a liga com a camada de telas.
+Alternativa correta
+class UserController {
+  addUser(User user){
+    UserDao.addUser(user);
+  }
+}
+
+@@06
+Faça como eu fiz: implemente a camada controller
+
+Nesta aula, vimos como implementar uma camada entre a UI e a camada de dados: o controller.
+Faça as seguintes implementações:
+
+Crie um DaoController que implementa a classe DaoWorkflow;
+Implemente os métodos de DaoController (apagar, salvar e listar entradas);
+Crie um ApiController que implementa a classe ApiWorkflow;
+Implemente os métodos de ApiController (listar entradas da API).
+Bons estudos!
+
+Caso queira um passo a passo mais detalhado, deixo aqui:
+Em lib, crie uma pasta chamada controller:
+a) Crie um arquivo chamado dao_controller.dart que implementa a classe DaoWorkflow;
+i) Crie um método que vai implementar o banco de dados com floor;
+ii) Crie as funções obrigatórias (deleteEntry, getSavedEntries e saveEntry);
+iii) Em cada uma dessas funções, chame o EntryDao para realizar a devida ação no banco de dados.
+b) Crie um arquivo chamado ApiController que implementa a classe ApiWorkflow:
+i) Crie uma instância de DataApi na classe;
+ii) mplemente o método obrigatório (getEntriesByCategory);
+iii) Nesse método, retorne o resultado da função getEntriesByCategory que a classe DataApi implementa.
+Pronto! Criamos a camada controller da aplicação.
+
+Caso queira conferir o código feito em curso, acesse o link do repositório no GitHub.
+
+https://github.com/alura-cursos/3117-clean_architecture/archive/refs/heads/Aula4.zip
+
+@@07
+Para saber mais: aprofundando a camada controller
+
+Como vimos, a camada controller funciona como uma mediadora que liga a camada de dados (que tem o banco de dados e API) com a camada responsável por mostrar esses dados na tela de forma visual para as pessoas usuárias.
+Em nosso projeto, por exemplo, chegam as informações de uma entrada da API; a camada controller “passa” essa informação para a camada responsável pela parte visual que, por sua vez, exibe a entrada na tela.
+
+Imagem que mostra uma representação das camadas da arquitetura limpa. Em destaque, está uma esfera na cor azul onde se lê a palavra “controller”. As demais camadas representadas são utils, dados e domínio
+
+Se quiser entender mais sobre essa camada, recomendamos o curso sobre arquitetura MVC, de onde vem a ideia de controller.
+O que são Controllers?
+Os Controllers são uma das camadas da arquitetura Clean Code no Flutter, responsáveis por gerenciar a lógica de negócios da aplicação. Como já vimos, eles atuam como intermediários entre a camada de apresentação (UI) e a camada de dados garantindo que a aplicação seja mais simples de testar.
+
+Para que servem a camada controller?
+Os benefícios da camada controller são os mesmos que já vimos anteriormente:
+
+Separação de preocupações: Ela isola a lógica de negócios da interface do usuário e dos detalhes de implementação, facilitando a manutenção e a evolução do código.
+Testabilidade: a camada facilita a escrita de testes unitários e de integração, permitindo verificar se a lógica de negócios está funcionando corretamente e sem depender da interface do usuário.
+Reutilização de código: Ao manter a lógica de negócios em uma camada específica, é mais fácil reutilizar essa lógica em diferentes partes da aplicação ou em futuros projetos.
+Exemplos e outros casos de uso
+1) Autenticação de Usuário
+Imagine uma aplicação Flutter que requer autenticação de usuário. A lógica de autenticação, como verificar credenciais, gerenciar tokens de autenticação e redirecionar o usuário após o login, pode ser encapsulada em um controller de Autenticação. Isso permite que a lógica de autenticação seja reutilizada em várias partes da aplicação, como telas de login, registro e recuperação de senha.
+
+2) Gerenciamento de Tarefas
+Em um aplicativo de gerenciamento de tarefas, você pode ter um controller de tarefas que lida com a criação, exclusão e atualização de tarefas. Esse controller pode ser usado por diferentes componentes de UI, como uma lista de tarefas, um formulário de adição de tarefas e uma página de detalhes de tarefas. A lógica de negócios relacionada às tarefas é isolada e facilmente testável.
+
+3) Integração com APIs
+Esse é o caso do aplicativo Hyrule! Em alguns casos, quando uma aplicação precisa se comunicar com APIs externas, como serviços web, um controller de API pode ser usado para encapsular toda a lógica de chamadas de API, tratamento de respostas e gerenciamento de erros. Isso torna a integração com APIs mais organizada e testável, além de facilitar a troca de APIs sem afetar a camada de apresentação.
+
+Fez sentido?
+
+https://cursos.alura.com.br/course/flutter-praticando-arquitetura-padrao-mvc
+
+@@08
+O que aprendemos?
+
+Nessa aula, você aprendeu a:
+Entender a importância da camada controller e intermediar os dados entre a camada de dados e UI;
+Implementar um controller na sua aplicação para a busca na API;
+Aplicar um controller na sua aplicação para gerenciamento dos métodos de banco de dados.
+Mais uma etapa concluída. Vejo você na próxima aula!
