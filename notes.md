@@ -1157,3 +1157,382 @@ Saber quando e como acoplar a aplicação para evitar grandes problemas em um ap
 Parabéns por ter concluído a segunda aula!
 
 Nos vemos na próxima aula do curso!
+
+#### 17/11/2023
+
+@03-Camada utils e API
+
+@@01
+Projeto da aula anterior
+
+Você pode revisar o seu código e acompanhar o passo a passo do desenvolvimento do nosso projeto e, se preferir, pode baixar o projeto da aula anterior.
+
+https://github.com/alura-cursos/3117-clean_architecture/archive/refs/heads/Aula2.zip
+
+@@02
+Lidando com a biblioteca DIO e a nossa API
+
+Nosso próximo passo será fazer a requisição para a API do Hyrule, onde vamos pegar as entradas por categoria. Para realizar essa requisição, utilizaremos a biblioteca do DIO.
+Lidando com a biblioteca DIO e a nossa API
+Da mesma forma que fizemos com o floor, precisamos adicionar alguns pacotes dentro do pubspec.yaml. Portanto, vamos abrir o arquivo e adicionar os dois pacotes que precisamos em dependencies.
+
+O primeiro pacote será o http, que deve ser na versão 1.1.0. O outro pacote é o dio, na versão 5.3.2.
+
+pubspec.yaml:
+dependencies:
+  flutter:
+    sdk: flutter
+
+
+  # The following adds the Cupertino Icons font to your application.
+  # Use with the CupertinoIcons class for iOS style icons.
+  cupertino_icons: ^1.0.2
+  floor: ^1.4.2
+  sqflite: ^2.3.0
+  http: ^1.1.0
+  dio: ^5.3.2
+COPIAR CÓDIGO
+Após salvar o arquivo pubspec.yaml, a IDE deverá fazer o pub get. Caso isso não ocorra, podemos abrir o terminal e rodar flutter pub get.
+
+flutter pub get
+COPIAR CÓDIGO
+Isso irá resolver as dependências. Se tudo ocorrer corretamente, os pacotes serão instalados. Agora, podemos fazer o que fizemos com o floor.
+
+Criando a classe DataApi
+Vamos criar uma nova pasta dentro da pasta "data", chamada "API", onde ficarão nossas requisições para a API. Assim como o DAO tem as requisições para obter a informação do banco de dados, salvar e deletar, dentro da pasta "API" teremos a conexão do DIO com a API para obter as informações.
+
+Dentro da pasta "API", criaremos um novo arquivo chamado data_api.dart, onde podemos iniciar a escrita da classe.
+
+No escopo da classe DataApi, vamos criar a primeira instância de dio, então teremos final Dio dio = Dio(). Feito isso, precisamos importar o Dio do pacote dio.
+
+data_api.dart:
+import 'package:dio/dio.dart';
+
+class DataApi {
+  final Dio dio = Dio();
+}
+COPIAR CÓDIGO
+Essa classe terá que retornar uma lista de entradas, então já podemos declará-la no começo, usando List<Entry> entries = [] e aproveitando para importar Entry.
+
+import 'package:dio/dio.dart';
+import 'package:hyrule/domain/models/entry.dart';
+
+class DataApi {
+  final Dio dio = Dio();
+  List<Entry> entries = [];
+}
+COPIAR CÓDIGO
+Criando a função getEntriesByCategory()
+Agora, precisamos criar uma função que irá preencher entries com algum valor. Essa função, por fazer uma requisição assíncrona para a API, deve ser um Future que retornará uma lista de entradas.
+
+Vamos chamar essa função de getEntriesByCategory(). Precisamos receber uma string que será a categoria, então entre parênteses e entre chaves, passamos required String category. Sendo uma função assíncrona, temos que indicar que isso ao final da linha.
+
+// código omitido
+
+class DataApi {
+  final Dio dio = Dio();
+  List<Entry> entries = [];
+  
+  Future<List<Entry>> getEntriesByCategory({required String category}) async {
+  
+  }
+}
+COPIAR CÓDIGO
+Fazendo a requisição
+Agora, podemos fazer a nossa requisição. Criaremos uma variável final response que receberá await dio.get().
+
+O método get() receberá a URL de onde vamos fazer a busca da API pela categoria. Copiaremos ela da documentação, sem a palavra "monsters" ao final, que é a categoria que queremos pegar.
+
+Após inserir a URL entre aspas duplas, podemos adicionar a variável que recebemos por meio de concatenação.
+
+// código omitido
+
+Future<List<Entry>> getEntriesByCategory({required String category}) async {
+  final response = await dio.get("https://botw-compendium.herokuapp.com/api/v3/compendium/category/" + category);
+}
+COPIAR CÓDIGO
+Criando uma lista
+Dessa forma, temos a response. Agora, precisamos criar uma lista a partir dessa resposta e retorná-la para a nossa função.
+
+Para preencher entries, temos que criar a lista. Portanto, vamos passar entries na linha 10 recebendo List<Entry>.from(), para criar a lista de entradas a partir de response.data, que passaremos entre parênteses.
+
+Future<List<Entry>> getEntriesByCategory({required String category}) async {
+  final response = await dio.get("https://botw-compendium.herokuapp.com/api/v3/compendium/category/" + category);
+  entries = List<Entry>.from(response.data)
+}
+COPIAR CÓDIGO
+Se voltarmos rapidamente para o navegador, onde fizemos a requisição de "monsters", podemos verificar que a primeira entrada que recebemos, o primeiro parâmetro do objeto JSON, é o data.
+
+Portanto, é a partir de data que precisamos extrair as informações. Concluído isto, temos uma lista de objetos pronta.
+
+De volta ao editor de código, vamos inserir o parâmetro data entre os colchetes de response.data[].
+
+A partir dessa resposta, faremos uma transformação utilizando map(), que receberá um elemento. Esse elemento será cada item da lista de objetos (e). Em seguida, vamos usar Entry.fromMap(), que receberá e, ou seja, o elemento do objeto JSON que recebemos da API.
+
+Future<List<Entry>> getEntriesByCategory({required String category}) async {
+  final response = await dio.get("https://botw-compendium.herokuapp.com/api/v3/compendium/category/" + category);
+  entries = List<Entry>.from(response.data["data"].map((e) => Entry.fromMap(e)));
+}
+COPIAR CÓDIGO
+Interessante observar que já geramos o fromMap() quando utilizamos o plugin do Visual Studio Code para nos auxiliar na geração do código. Isso nos adiantou um bom tempo, no momento em que iniciamos nosso trabalho.
+Com isso, temos nossa lista montada. Agora basta retornar para a função ficar completa. Portanto, finalizaremos com return entries.
+
+import 'package:dio/dio.dart';
+import 'package:hyrule/domain/models/entry.dart';
+
+class DataApi {
+  final Dio dio = Dio();
+  List<Entry> entries = [];
+
+  Future<List<Entry>> getEntriesByCategory({required String category}) async {
+    final response = await dio.get("https://botw-compendium.herokuapp.com/api/v3/compendium/category/" + category);
+    entries = List<Entry>.from(response.data["data"].map((e) => Entry.fromMap(e)));
+    return entries;
+  }
+}
+COPIAR CÓDIGO
+Conclusão
+Criamos nossa chamada para a API usando DIO! Note que, utilizando o DIO, em poucas linhas, conseguimos fazer uma requisição, transformá-la em JSON, armazená-la em uma lista e devolvê-la. Isso elimina a necessidade de vários outros passos que teríamos se usássemos apenas HTTP.
+
+@@03
+O que não muda é constante
+
+Dentro da função dio.get(), nós inserimos a URL da API para buscar por categoria. O detalhe é que esse projeto no qual trabalhamos não tem muitas requisições, então não é um projeto muito complexo.
+Trata-se de um projeto um pouco mais simples, porém, isso não significa que não deveríamos organizá-lo conforme as funcionalidades do Clean.
+
+O que não muda é constante
+A URL é usada na função getEntriesByCategory(), mas ela não vai mudar. Inclusive, até o próprio Dart já nos sugere que essa variável poderia ser uma constante, que poderia ser colocada em algum outro lugar.
+
+Tudo que não será modificado no projeto, será constante e pode ficar em outra camada. Esta é uma camada que o Clean chama de Utils.
+
+Utils é onde ficarão todas as ferramentas que podemos reutilizar em todo o projeto e também onde podemos concentrar informações, por exemplo, constantes que não serão alteradas.
+
+Suponha que fizemos inúmeras requisições diferentes para a API. São URLs diferentes, mas todas elas pertencem à mesma API. Podemos criar um arquivo que vai conter uma lista de todas as URLs que usaremos para essa API.
+
+Posteriormente, ao invés de continuar escrevendo manualmente ou alterar alguma dessas URLs, nós simplesmente vamos para esse arquivo e alteramos a URL que queremos mudar.
+
+Assim, fica algo um pouco mais organizado e conforme o projeto cresce — lembrando que um aspecto da arquitetura é escalabilidade —, ele se torna mais organizado e mais fácil de receber manutenção.
+
+Criando a constante url
+Para esse passo, vamos substituir a URL de uma string para colocá-la dentro de uma variável. É uma camada separada que ficará na raiz da pasta "lib", dentro de uma nova pasta "utils".
+
+Dentro de "utils", criaremos outra pasta chamada "consts". Isso porque em "utils", também podemos colocar informações de temas.
+
+Temas são coisas que não vão mudar nunca, como as cores da aplicação e a tipografia, por exemplo. Elas também podem ficar dentro de "utils", pois serão ferramentas de estilização para nós.
+Agora, dentro de "consts", criaremos um novo arquivo chamado api.dart. Será um arquivo simples, onde criaremos uma constante String a qual chamaremos de url. Ela receberá a string que copiamos da API. Então, vamos recortar a URL de data_api.dart e colar em api.dart.
+
+api.dart:
+const String url = "https://botw-compendium.herokuapp.com/api/v3/compendium/category/";
+COPIAR CÓDIGO
+Feito isso, temos nossa string e podemos salvar o arquivo api.dart. Agora, no arquivo data_api.dart, só precisamos importar a URL.
+
+data_api.dart:
+import 'package:dio/dio.dart';
+import 'package:hyrule/domain/models/entry.dart';
+import 'package:hyrule/utils/consts/api.dart';
+
+class DataApi {
+  final Dio dio = Dio();
+  List<Entry> entries = [];
+
+  Future<List<Entry>> getEntriesByCategory({required String category}) async {
+    final response = await dio.get(url + category);
+    entries = List<Entry>.from(response.data["data"].map((e) => Entry.fromMap(e)));
+    return entries;
+  }
+}
+COPIAR CÓDIGO
+Atenção: precisamos tomar cuidado, pois ao escrever a URL, como ficou um pouco genérica, podemos nos confundir com o nome do import.
+Assim fica mais interessante e a requisição se torna mais limpa, porque agora não precisamos saber qual é a URL. Sabemos que ela vem de algum lugar, e esse lugar é das constantes do nosso Utils. À medida que adicionarmos mais coisas ao nosso projeto, vamos adicionar mais coisas ao Utils.
+
+Conclusão
+Com isso, terminamos a nossa camada de dados, de informações.
+
+Você deve estar se perguntando: fizemos as requisições da API e do banco de dados, mas onde vamos usar o API Workflow ou DAO Workflow? Agora começamos a transitar por outra camada, onde realmente importamos e implementamos a nossa regra de negócios.
+
+Nos encontramos no próximo vídeo!
+
+@@04
+Para saber mais: aprofundando na camada utils
+
+ 
+Nesta aula, você conheceu uma nova camada: a utils (em português, “utilitários”). Responsável por armazenar nossas bibliotecas, é uma camada realmente útil para inserirmos partes do código que tendem a não mudar.
+
+O que são utilitários (utils)?
+Os utilitários, também conhecidos como utils, são classes ou funções que contêm métodos auxiliares e lógica reutilizável para realizar tarefas específicas em um aplicativo Flutter. Essas tarefas podem variar desde funções de formatação de datas até métodos para efetuar chamadas de API, validação de entrada de dados e muito mais. A ideia principal é encapsular funcionalidades que podem ser reutilizadas em várias partes do código.
+
+Para que servem os utilitários (utils)?
+Os utilitários servem para várias finalidades dentro de um projeto Flutter:
+
+1) Reutilização de Código
+Os utilitários encapsulam funcionalidades comuns, permitindo que você as utilize em diferentes partes do aplicativo. Isso evita a duplicação de código e promove a coesão, deixando o código mais limpo e simples de trabalhar e arrumar.
+
+2) Abstração de Lógica Complexa
+Funcionalidades complexas podem ser abstraídas na camda utils, tornando o código do aplicativo principal mais simples e legível. Isso facilita a compreensão da lógica de negócios e a manutenção futura.
+
+3) Testabilidade
+Com a camada utils, você pode isolar e testar unidades de código independentes, o que é essencial para garantir a qualidade do software por meio de testes unitários e de integração.
+
+Exemplos práticos
+No projeto Hyrule, colocamos bibliotecas dentro da camada utils. Veja outros exemplos e casos de uso comuns para a camada utils no Flutter:
+
+1. Formatação de Data e Hora
+Utilitários podem conter métodos para formatar datas e horas de acordo com diferentes padrões. Isso é útil para exibir datas de forma amigável ao usuário ou para formatar datas antes de enviá-las para um servidor.
+
+Exemplo:
+
+dartCopy code
+class DateUtils {
+  static String formatToShortDate(DateTime date) {
+    final formatter = DateFormat('dd/MM/yyyy');
+    return formatter.format(date);
+  }
+}
+COPIAR CÓDIGO
+2. Validação de Entrada de Dados
+Você pode criar utilitários para validar entradas de dados, como endereços de e-mail, senhas, números de telefone, etc. Isso ajuda a manter a consistência e a segurança dos dados do aplicativo.
+
+Exemplo:
+
+dartCopy code
+class ValidationUtils {
+  static bool isValidEmail(String email) {
+    final emailRegex = RegExp(r'^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$');
+    return emailRegex.hasMatch(email);
+  }
+}
+COPIAR CÓDIGO
+3. Chamadas de API
+Utilitários podem conter métodos para realizar chamadas de API de forma assíncrona, tratando erros e retornando dados formatados.
+
+Exemplo:
+
+dartCopy code
+class ApiUtils {
+  static Future<Map<String, dynamic>> fetchData(String apiUrl) async {
+    final response = await http.get(Uri.parse(apiUrl));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data;
+    } else {
+      throw Exception('Falha na chamada da API');
+    }
+  }
+}
+COPIAR CÓDIGO
+4. Internacionalização
+Utilitários podem ajudar na internacionalização do aplicativo, oferecendo métodos para obter strings traduzidas de acordo com o idioma definido pelo usuário.
+
+Exemplo:
+
+dartCopy code
+class LocalizationUtils {
+  static String translate(String key, String locale) {
+    // Lógica para buscar a tradução da chave no arquivo de recursos apropriado
+  }
+}
+COPIAR CÓDIGO
+Lembre-se de que a estrutura da camada utils pode variar de acordo com as necessidades do projeto, mas a ideia fundamental é manter o código limpo, reutilizável e fácil de manter.
+
+Fez sentido?
+
+@@05
+Lidando com constantes em projetos otimizados
+
+Você está trabalhando em um projeto de um aplicativo de biblioteca utilizando a Clean Architecture com Flutter.
+O projeto consiste em aplicar o conhecimento adquirido em aula para construir uma aplicação eficiente que armazena informações de todos os tipos de livros obtidos de uma API. O passo inicial envolve definir a constante de URL.
+
+Dada essa situação, como você faria isso da maneira correta?
+
+Você escreve a URL diretamente no momento em que faz a requisição à API.
+http.get('https://www.googleapis.com/books/v1/volumes');
+ 
+Alternativa correta
+Você deixa a URL como uma variável global não definida.
+String url;
+ 
+Alternativa correta
+Você define a URL como uma variável de String.
+String url = 'https://www.googleapis.com/books/v1/volumes';
+ 
+Definir a URL como uma variável de String não torna ela constante, o que pode levar a mudanças indesejadas ao longo do projeto.
+Alternativa correta
+Você define a URL como um literal de string.
+const String url = 'https://www.googleapis.com/books/v1/volumes';
+ 
+Definir a URL como um literal de string é a prática recomendada, pois permite que a URL seja usada de maneira consistente em todo o código, facilitando a manutenção e prevenindo mudanças indesejadas.
+Alternativa correta
+Você define a URL dentro de uma função.
+getUrl() {
+  const url = 'https://www.googleapis.com/books/v1/volumes';
+  return url;
+}
+
+@@06
+O que mais é útil?
+
+Depois de montar a constante da URL, você reparou que existem mais coisas no projeto que não serão alterados: a tipografia. Você decidiu implantar uma fonte especial para os nomes dos livros.
+Como você definiria a constante de estilização de tipografia no seu código Flutter?
+
+Textstyle UserFont = const (fontFamily: 'UserFont', fontSize: 24.0);
+ 
+Esta alternativa é inválida porque o nome da classe TextStyle não está correto. Além disso, a palavra-chave const está posicionada de maneira inadequada.
+Alternativa correta
+UserFont = const TextStyle(fontFamily: 'UserFont', fontSize: 24.0);
+ 
+Alternativa correta
+const UserFont = TextStyle('UserFont', 24.0);
+ 
+Este exemplo é inválido porque a classe TextStyle espera que os parâmetros sejam nomeados, como fontFamily e fontSize. Apenas passar os valores não é suficiente.
+Alternativa correta
+UserFont = TextStyle('UserFont', 24.0);
+ 
+Alternativa correta
+const UserFont = TextStyle(fontFamily: 'UserFont', fontSize: 24.0);
+ 
+Esta é a maneira correta de definir a constante de estilização no Flutter. Você criou uma constante chamada UserFont e utilizou o TextStyle, passando o nome da fonte e o tamanho desejado.
+
+@@07
+Faça como eu fiz: DIO e a camada utils
+
+Nesta aula vimos como utilizar a biblioteca DIO e também uma nova camada, a de utils.
+Faça as seguintes implementações em seu projeto:
+
+Adicione a biblioteca DIO em seu projeto;
+Crie uma classe para lidar com as informações da API;
+Dentro dessa classe, faça a requisição para a API do compendium (https://botw-compendium.herokuapp.com/api/v3/compendium/category/);
+Crie a camada utils para deixar as informações constantes da aplicação.
+Vamos lá?
+
+https://botw-compendium.herokuapp.com/api/v3/compendium/category/
+
+Você pode conferir o gitHub ou ver o passo a passo a seguir:
+Instalando DIO:
+Adicione as dependências http e dio na seção dependencies com suas respectivas versões:
+http: ^1.1.0
+dio: ^5.3.2
+Criando nossa constante:
+Crie uma nova camada chamada utils e dentro dela crie a pasta consts;
+Crie um arquivo chamado api.dart;
+Dentro declare uma variável do tipo String constante que contém a url da API.
+Fazendo a requisição:
+Crie uma classe chamada DataApi;
+Crie uma instância de DIO;
+Crie uma lista do tipo Entry inicializando com uma lista vazia;
+Crie o método getEntriesByCategory que retorna uma lista de objetos Entry e recebe um parâmetro category do tipo String;
+Dentro do método, faça uma requisição utilizando o dio e a constante api que criamos dentro de consts;
+Após a requisição, converta a resposta em uma lista de objetos Entry e atribua a lista entries;
+Retorne a lista entries no final do método.
+Pronto, terminamos uma parte da camada de dados!
+
+https://github.com/alura-cursos/3117-clean_architecture/archive/refs/heads/Aula3.zip
+
+@@08
+O que aprendemos?
+
+Nessa aula, você aprendeu como:
+Instalar a biblioteca DIO;
+Utilizar a biblioteca dentro do projeto;
+Aplicar a camada utils, entendendo sua utilidade para um projeto.
+Parabéns por ter concluído mais uma aula. Bons estudos!
