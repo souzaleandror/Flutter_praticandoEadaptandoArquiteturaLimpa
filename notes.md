@@ -1936,3 +1936,958 @@ Entender a importância da camada controller e intermediar os dados entre a cama
 Implementar um controller na sua aplicação para a busca na API;
 Aplicar um controller na sua aplicação para gerenciamento dos métodos de banco de dados.
 Mais uma etapa concluída. Vejo você na próxima aula!
+
+#### 18/11/2023
+
+@05-Camada presenter
+
+@@01
+Projeto da aula anterior
+
+Você pode revisar o seu código e acompanhar o passo a passo do desenvolvimento do nosso projeto e, se preferir, pode baixar o projeto da aula anterior.
+Bons estudos!
+
+https://github.com/alura-cursos/3117-clean_architecture/archive/refs/heads/Aula4.zip
+
+@@02
+Construindo a estrutura da home e o tema
+
+Tudo isto que montamos foi apenas para construir a lógica da aplicação. O cliente ressaltou a importância de ter toda a regra de negócios bem definida e estruturada.
+Não é relevante se a cor do botão é azul, verde, grande ou pequeno, o que realmente importa é que a pessoa consiga clicar naquele botão e executar uma ação. Essas ações podem ser adicionar uma entrada, remover uma entrada, listar a entrada, buscar algo de uma API e assim por diante.
+
+Entretanto, para ter esse botão e realizar essa conexão, é preciso ter a base da aplicação bem construída. Com essa base pronta, conseguimos expandir nas camadas e implementar bibliotecas que vão sempre se comunicando de fora para dentro, fazendo essa ponte.
+
+A camada Presenter
+Finalmente chegamos na camada Presenter (Apresentação), onde vamos apresentar as informações para a pessoa na tela. Para isso, podemos abrir o nosso emulador.
+
+Vamos diminuir o espaço do editor de código para alocar o emulador à sua direita. Agora, assim como em todas as camadas que montamos, vamos criar uma nova pasta chamada "screens" na raiz da pasta "lib".
+
+A escolha de nomenclatura pode variar de acordo com a equipe com a qual você está trabalhando. Eu, Matheus, prefiro utilizar "screens", mas isso pode ser alterado, não é uma regra.
+
+Dentro de "screens" vamos criar a página de categorias, ou categories.dart. No interior desse arquivo, vamos usar as ferramentas do próprio Visual Studio Code para gerar um Stateless Widget, digitando fls e selecionando a opção "fstless" na lista suspensa de sugestões.
+
+Isso gerará a estrutura abaixo.
+
+class Categories extends StatelessWidget {
+const Categories({ Key? key }): super(key: key);
+    
+    @override
+    Widget build(BuildContext context){
+        return Container();
+    }
+}
+COPIAR CÓDIGO
+Aqui não há segredo, se trata da estrutura de Widget que já fizemos inúmeras vezes. Mas agora, a estrutura dele será um Safe Area, um Scaffold, e dentro desse Scaffold também vamos inserir um AppBar.
+
+Vamos substituir o Container() por SafeArea(), que terá um child que é um Scaffold(). Este, por sua vez, terá um appBar que é um AppBar().
+
+Dentro do AppBar(), teremos um title que é um const Text(). Ele será constante, pois não será alterado.
+
+Dentro de const Text(), teremos a mensagem "Escolha uma categoria". Também queremos centralizar esse texto, adicionando um centerTitle: true à direita do const Text().
+
+class Categories extends StatelessWidget {
+const Categories({ Key? key }): super(key: key);
+    
+    @override
+    Widget build(BuildContext context){
+        return SafeArea(
+            child: Scaffold(
+                appBar: AppBar(
+                title: const Text("Escolha uma categoria"),
+                centerTitle: true
+                ), // AppBar
+            ), // Scaffold
+        ); // SafeArea
+    }
+}
+COPIAR CÓDIGO
+Salvaremos a página de categoria. Agora, em nosso main.dart, acessaremos o Widget build dentro do qual temos que substituir o Container() por Categories().
+
+class Hyrule extends StatelessWidget {
+    const Hyrule({super.key});
+    
+    @override
+    Widget build(BuildContext context) {
+        return MaterialApp(
+        title: 'Hyrule',
+        theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+            useMaterial3: true,
+        ), // ThemeData
+        home: Categories(),
+    ); // MaterialApp
+}
+COPIAR CÓDIGO
+Ao digitar "Categories", selecionaremos a segunda sugestão da lista fornecida pelo editor: "Categories(_)", o que fará sua autoimportação conforme abaixo.
+
+import 'package: hyrule/screens/categories.dart';
+COPIAR CÓDIGO
+Salvaremos o main.dart, e agora podemos rodar o nosso aplicativo no emulador clicando na opção “Run and Debug” ou pressionando “Ctrl+Shift+D”.
+
+Enquanto o aplicativo está rodando, faremos uma observação rápida. Por padrão, o nosso ThemeData possui um tema claro. No emulador, veremos que o aplicativo está com o tema claro.
+
+Contudo, se observarmos nosso design no Figma, notamos que ele usa um tema escuro. Existem algumas configurações que podemos modificar no ThemeData para se adaptar ao que vamos usar em nossa aplicação.
+
+Voltando ao editor de código, trocaremos as informações de ColorScheme() e de brightness. Substituiremos a linha colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple) pela linha colorSchemeSeed: Colors.blue.
+
+Abaixo dessa linha, adicionaremos o brightness: Brightness.dark para utilizar o tema escuro.
+
+class Hyrule extends StatelessWidget {
+    const Hyrule({super.key});
+    
+    @override
+    Widget build(BuildContext context) {
+        return MaterialApp(
+        title: 'Hyrule',
+        theme: ThemeData(
+            colorSchemeSeed: Colors.blue,
+            brightness: Brightness.dark,
+            useMaterial3: true,
+        ), // ThemeData
+        home: Categories(),
+    ); // MaterialApp
+}
+COPIAR CÓDIGO
+Salvaremos o main.dart e veremos no emulador que já estamos com o tema escuro.
+
+Já a página principal de categorias. A seguir, preencheremos as informações.
+
+@@03
+Para saber mais: aprofundando a camada presenter
+
+Se você perceber, fomos construindo o aplicativo Hyrule em pequenas etapas, subindo um degrau por vez. Em cada aula, você aprendeu uma camada diferente para deixar o projeto bem organizado e facilitar o trabalho com ele.
+Fomos construindo blocos que, finalmente, serão combinados para que o aplicativo seja funcional e possa ser utilizado pelas pessoas!
+
+Assim, finalmente chegamos na última camada: a presenter (apresentação). Como o título indica, essa camada é responsável por apresentar as informações na tela, permitindo que o usuário veja os dados das entradas e interaja com elas, salvando as entradas em favoritos.
+
+Imagem que representa as camadas da arquitetura limpa ou clean code. Há várias esferas que envolvem uma a outra: domínio, dados, utils e controller. Em destaque, a esfera mais exterior está na cor vermelha e dentro dela pode-se ler a palavra “presenter”
+
+Os benefícios de se trabalhar com uma camada presenter são inúmeros, como já vimos nas aulas anteriores com domínio, dados, utils etc.
+
+Fez sentido?
+
+https://caelum-online-public.s3.amazonaws.com/3117-flutte-+arquitetura-clean-code/imagem7.jpg
+
+@@04
+Componente de categoria
+
+Para preencher a tela de categorias com informações, precisamos criar os componentes de categorias. Olhando no Figma, esses componentes são InkWells com uma imagem central e um texto na parte inferior.
+Criando o Componente de Categoria
+Vamos criar esse componente. Como faz parte da identidade visual, é indicado inserir os componentes dentro do mesmo diretório "screens", em uma subpasta chamada "components". Isso ajuda a distinguir a tela dos componentes da tela.
+
+Dentro de "components", criaremos um arquivo chamado category.dart. Ele terá a estrutura padrão de Stateless Widget, importando do Material.
+
+import 'package:flutter/material.dart';
+
+class Category extends StatelessWidget {
+const Category({ Key? key }): super(key: key);
+
+    @override
+    Widget build(BuildContext context){
+        return Container();
+    }
+}
+COPIAR CÓDIGO
+Precisamos receber o valor da categoria para preencher a informação dentro do cartão. Na linha const Category(), à direita de key, adicionaremos um required this.category, que será a string que receberemos mais tarde.
+
+Abaixo dessa linha, inicializaremos ela como final String category.
+
+No interior de Widget build(), vez de retornar um Container(), retornaremos uma Column(). Esta precisa de um children, que será uma lista de Widgets (<Widget>[]). Entre os colchetes deste Widget, teremos o InkWell e o texto.
+
+Vamos começar com um InkWell(). Entre seus parênteses, ele precisa de uma função OnTap: (){}, que será uma função anônima que, por enquanto, não fará nada.
+
+O InkWell também terá um child que será um Ink(). Entre os parênteses desse Ink() haverá um child que será um Center(). Este, por sua vez, terá um child, que é uma Image. Como estamos obtendo as imagens do nosso dispositivo e elas estão na pasta "assets", usaremos o Image.asset().
+
+Entre os parênteses Image.asset(), adicionaremos seu nome, que é o caminho de origem das imagens: "assets/images/" junto ao nome da categoria que estamos buscando — neste caso, podemos usar o $category.png, onde category é a variável em que estamos trabalhando e png é o padrão das imagens que estamos manipulando.
+
+Vamos indentar o arquivo. Após construir o InkWell, abaixo dos parênteses que fecham seu bloco, teremos o Text(category) que corresponde ao texto da categoria.
+
+import 'package:flutter/material.dart';
+
+class Category extends StatelessWidget {
+const Category({ Key? key }): super(key: key);
+
+    @override
+    Widget build(BuildContext context){
+        return Column(children: <Widget>[
+            Inkwell(
+                onTap: () {},
+                child: Ink(
+                    child: Center(
+                        child: Image.asset("assets/images/$category.png"),
+                    ), // Center
+                ), // Ink
+            ), // Inkwell
+            Text(category),
+        ],); // <Widget>[] // Column
+    }
+}
+COPIAR CÓDIGO
+Há dois detalhes muito importantes a salientar: assets/images/ é um caminho e, assim como fizemos com a URL da API, podemos separar esse texto em uma constante.
+
+Acessando o explorador, criaremos um novo arquivo na pasta utils/consts. Ele será chamado categories.dart. Agora temos Categories em "screens" e categories, que são constantes. Precisamos tomar cuidado para não confundir um com o outro mais tarde.
+
+No interior desse novo arquivo, criaremos uma constante, String imagePath, que será igual àquele valor do caminho de assets: assets/images/.
+
+const String imagePath = "assets/images/";
+COPIAR CÓDIGO
+Vamos salvar o arquivo categories.dart. Em seguida, acessaremos o arquivo category.dart do caminho de pastas "screens > components".
+
+Em seu interior, substituiremos o trecho assets/images/ por $imagePath e a importação do caminho de categories será feita automaticamente.
+
+import 'package:flutter/material.dart';
+
+class Category extends StatelessWidget {
+const Category({ Key? key }): super(key: key);
+
+    @override
+    Widget build(BuildContext context){
+        return Column(children: <Widget>[
+            Inkwell(
+                onTap: () {},
+                child: Ink(
+                    child: Center(
+                        child: Image.asset("$imagePath$category.png"),
+                    ), // Center
+                ), // Ink
+            ), // Inkwell
+            Text(category),
+        ],); // <Widget>[] // Column
+    }
+}
+COPIAR CÓDIGO
+Isso deixa o código mais limpo, porque agora temos o imagePath. Se quisermos alterar o caminho, por exemplo, para usar outra pasta, temos acesso a ele.
+
+Outro detalhe muito importante é que, ao olharmos o Figma, o nome da categoria tem a primeira letra maiúscula, mas se olharmos o resultado da API, category é tudo minúsculo.
+
+{
+    "data": [
+        {
+            "category": "monsters",]
+            "common_locations": [
+                "Gerudo Desert"
+            ]
+            "description": "This massive monster swims beneath the desert's sand. It spends most of its time submerged, but if it senses sound, it will breach the surface to feast on whatever it can grab. Running around carelessly can be dangerous if you suspect there may be one in the area."
+            "dlc": false,
+            "drops": [
+                "molduga fin",
+                "molduga guts"
+            ],
+            "id": 151,
+            "image": "https://botw-
+compendium.herokuapp.com/api/v3/compendium/entry/molduga/image",
+            // Retorno omitido
+        }
+    ]
+}
+COPIAR CÓDIGO
+No exemplo acima, o nosso objeto de resposta possui "monsters" escrito totalmente em minúsculas.
+
+Para sabermos quando usar cada formato e relacionar um valor com outro, podemos criar um dicionário.
+
+Criando um Dicionário
+Voltando ao editor de código, dentro do nosso arquivo de constantes categories.dart, podemos criar na linha 3 um dicionário const Map que terá a chave e o valor do tipo String. Podemos chamá-lo de categories, que são as listas de categorias, as nossas chaves.
+
+const String imagePath = "assets/images/";
+
+const Map<String, String> categories {
+
+}
+COPIAR CÓDIGO
+Nele, devolveremos um objeto, e esse objeto terá como chave o que está escrito na API, e a resposta será o que está escrito no Figma.
+
+Precisamos ter cuidado, pois algumas palavras estão no plural e outras no singular. Usaremos como referência os nomes das imagens, pois elas estão relacionadas à API (isso já foi considerado anteriormente). Ao invés de alternar constantemente para a nossa página, verificaremos as imagens.
+
+Começaremos com creatures. A chave será creatures, toda em minúsculo, e o valor será Creatures, com a primeira letra maiúscula. Ambos estarão entre aspas simples.
+
+Faremos o mesmo com equipment (termo no singular), materials, monsters e, finalmente, treasure (que por algum motivo, também está no singular).
+
+const String imagePath = "assets/images/";
+
+const Map<String, String> categories {
+    'creatures': 'Creatures',
+    'equipment': 'Equipment',
+    'materials': 'Materials',
+    'monsters': 'Monsters',
+    'treasure': 'Treasure',
+}
+COPIAR CÓDIGO
+Perfeito. Temos nosso dicionário pronto. Agora, quando formos buscar a categoria e preenchê-la com o nome da categoria, podemos simplesmente chamar nosso mapa, que nomeamos de categories. Vamos adicioná-lo entre os parênteses de Text, no arquivo category.dart da pasta "components".
+
+import 'package:flutter/material.dart';
+
+class Category extends StatelessWidget {
+const Category({ Key? key }): super(key: key);
+
+    @override
+    Widget build(BuildContext context){
+        return Column(children: <Widget>[
+            Inkwell(
+            
+                // Código omitido
+                
+            ), // Inkwell
+            Text(categories),
+        ],); // <Widget>[] // Column
+    }
+}
+COPIAR CÓDIGO
+Precisamos ter cuidado para importar esse categories do lugar certo. Na lista de sugestões do editor, devemos selecionar a opção "categories" do tipo Map<String, String> (um mapa de string com string).
+
+import 'package:hyrule/utils/consts/categories.dart';
+COPIAR CÓDIGO
+Vamos adicionar a esse categories um par de colchetes. Entre elas, estamos solicitando exatamente a chave, que é de category.
+
+Veremos um erro sendo acusado, pois ele não sabe se haverá algum valor. Para resolver isso, podemos forçar um Required adicionando um ponto de exclamação à direita dos colchetes, pois sabemos que ele vai existir dentro do nosso mapa, já que se trata do que estamos enviando e trabalhando em cima.
+
+import 'package:flutter/material.dart';
+import 'package:hyrule/utils/consts/categories.dart';
+
+class Category extends StatelessWidget {
+const Category({ Key? key }): super(key: key);
+
+    @override
+    Widget build(BuildContext context){
+        return Column(children: <Widget>[
+            Inkwell(
+            
+                // Código omitido
+                
+            ), // Inkwell
+            Text(categories[category]!),
+        ],); // <Widget>[] // Column
+    }
+}
+COPIAR CÓDIGO
+Com isso, temos nossa chave, nosso valor, nosso mapa e, portanto, a categoria está completa. O próximo passo será preencher a categoria.
+
+@@05
+Mostrando categorias e a página de resultados
+
+Para preencher a tela de categorias utilizando o componente de categorias, podemos utilizar uma GridView. Vamos acessar o arquivo categories.dart dentro da página de categorias.
+Adicionando a GridView
+Em seu interior, abaixo do bloco de chaves da AppBar(), incluiremos a propriedade body que será um GridView(). Entre seus parênteses, ele precisa de um gridDelegate, que é um SliverGridDelegateWithFixedCrossAxisCount(). Este, por sua vez, precisa ter um crossAxisCount, que terá o valor 2.
+
+À direita do crossAxisCount, teremos um crossAxisSpacing com o valor de 16 pixels e um mainAxisSpacing que também possuirá o valor 16 pixels.
+
+A seguir, indentaremos o código rapidamente. Para indentar no VS Code, podemos utilizar o atalho "Alt+Shift+F".
+
+O GridDelegate precisará de um children. Vamos adicioná-lo abaixo dos parênteses de SliverGridDelegateWithFixedCrossAxisCount. Esse children precisa ser uma lista. Portanto, podemos pegar o nosso dicionário, e a partir dele, iterar e devolver uma categoria no formato correto.
+
+Para isso, deletaremos a lista [] adicionada automaticamente, saltaremos uma linha e chamaremos categories.keys.map((e) => ). Nesse comando, queremos obter as chaves e, a partir delas, faremos um mapa. Para cada elemento e dentro desse mapa — ou seja, para cada chave —, queremos obter e retornar um Category().
+
+class Categories extends StatelessWidget {
+const Categories({ Key? key }): super(key: key);
+    
+    @override
+    Widget build(BuildContext context){
+        return SafeArea(
+            child: Scaffold(
+                appBar: AppBar(
+                    title: const Text("Escolha uma categoria"),
+                    centerTitle: true
+                ), // AppBar
+                body: GridView(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2, crossAxisSpacing: 16, mainAxisSpacing: 16), // SliverGridDelegateWithFixedCrossAxisCount
+                        children:
+                            categories.keys.map((e) => Category(category: category))
+                ), // GridView
+            ), // Scaffold
+        ); // SafeArea
+    }
+}
+COPIAR CÓDIGO
+Devemos nos assegurar de que estamos referindo o Category correto. Na sugestão de importação do editor, devemos selecionar aquele que é um required String category. A autoimportação correta está abaixo e deve ter sido adicionada à seção de importações do arquivo.
+
+import 'package:hyrule/screens/components/category.dart';
+COPIAR CÓDIGO
+Entre os parênteses de Category(), ao invés de devolver uma category: category, devolveremos um category: e, elemento com o qual estamos trabalhando, junto a um .toList(), pois temos que retornar uma lista.
+
+categories.keys.map((e) => Category(category: e))
+COPIAR CÓDIGO
+Vamos salvar o arquivo e verificar o emulador. Veremos que a seção "Creatures" (criaturas) já apareceu, junto a seu ícone com o perfil da cabeça de um cavalo, comprovando que as imagens estão carregando corretamente. O nome da criatura também está aparecendo.
+
+Neste momento, não nos preocuparemos com a estilização. Vamos apenas fazer a aplicação funcionar primeiro.
+
+Finalizamos a página de categoria. Agora, podemos criar a página de resultados porque, quando clicarmos em uma categoria, ela precisa direcionar para algum lugar.
+
+Criando a Página de Resultados
+Para isso, podemos criar uma nova página de telas chamada result.dart, dentro da pasta "screens".
+
+No interior desse arquivo, a página de resultados terá a estrutura padrão de um StatelessWidget, o qual devemos importar do nosso Material.
+
+import 'package:flutter/material.dart';
+
+class Results extends StatelessWidget {
+const Results({ Key? key }) : super(key: key);
+
+    @override
+    Widget build(BuildContext context) {
+        return Container();
+    }
+}
+COPIAR CÓDIGO
+Precisamos receber uma categoria dentro desses resultados, pois será a partir dela que faremos a busca para a API, passando para dentro de um FutureBuilder que, posteriormente, fará a requisição a partir da categoria.
+
+Para isso, à direita da key de const Results()vamos receber required this.category. E ela será uma String, portanto, abaixo da linha atual, adicionaremos um final String category.
+
+Conforme essa estrutura básica, vamos substituir o retorno do Container() por um SafeArea(), e entre os parênteses deste, adicionar um children: Scaffold().
+
+Dentro de Scaffold(), temos o appBar, que é um AppBar(). Dentro do AppBar, temos um title que é um Text().
+
+Esse Text() ficará no topo da tela, portanto, pode usar o nosso dicionário dentro de categories. À direita de categories, informaremos uma category entre colchetes.
+
+Ele acusará um erro porque não temos certeza se essa propriedade realmente existe. Confirmaremos a existência dela com o Null Safety, adicionando uma exclamação (!) à direita de [category].
+
+class Results extends StatelessWidget {
+const Results({ Key? key, required this.category }) : super(key: key);
+  final String category;
+    
+    @override
+    Widget build(BuildContext context) {
+        return SafeArea(child: Scaffold(appBar: AppBar(title: Text(categories[category]!),),),);
+    }
+}
+COPIAR CÓDIGO
+Devemos nos assegurar de que estamos referindo o categories correto. Na sugestão de importação do editor, devemos selecionar aquele que possui chave e valor (ou seja, Map<String, String>. A autoimportação correta está abaixo e deve ter sido adicionada à seção de importações do arquivo.
+
+import 'package:hyrule/utils/consts/categories.dart';
+COPIAR CÓDIGO
+Vamos indentar automaticamente o código desse arquivo, cujo resultado veremos abaixo.
+
+class Results extends StatelessWidget {
+const Results({ Key? key, required this.category }) : super(key: key);
+  final String category;
+    
+    @override
+    Widget build(BuildContext context) {
+        return SafeArea(
+            child: Scaffold(
+                appBar: AppBar(
+                    title: Text(categories[category]!),
+            ), // AppBar
+        ), // Scaffold
+    ); // SafeArea
+}
+COPIAR CÓDIGO
+Posteriormente montaremos o nosso Body. Salvaremos o arquivo atual e com isso, quando clicarmos em uma categoria, ela deve direcionar para a página de resultado.
+
+Acessando o arquivo category.dart do nosso componente de Category, faremos um Navigator.push(context, route) entre as chaves do onTap.
+
+O context continuará assim. Já a route será um MaterialPageRoute(). Entre os parênteses, este receberá a função anônima builder: (context), a partir do qual adicionaremos uma seta => e um Results().
+
+Dentro de Results(), uma categoria é solicitada. A categoria que vamos passar é exatamente a category: category. Para isso, vamos digitar "category:" e selecionar a opção "category" na lista de sugestões do editor.
+
+import 'package:flutter/material.dart';
+
+class Category extends StatelessWidget {
+const Category({ Key? key }): super(key: key);
+
+    @override
+    Widget build(BuildContext context){
+        return Column(children: <Widget>[
+            Inkwell(
+                onTap: () {
+                        Navigator.push(context, MaterialPageRoute (builder: (context) => Results(category: category)));
+                },
+                child: Ink(
+                    child: Center(
+                        child: Image.asset("$imagePath$category.png"),
+                    ), // Center
+                ), // Ink
+            ), // Inkwell
+            Text(categories[category]!),
+        ],); // <Widget>[] // Column
+    }
+}
+COPIAR CÓDIGO
+Salvaremos todo o código e veremos se está funcionando. Se acessarmos a aplicação e clicarmos em "Creatures", ele navegará para a página "Creatures". No topo desta, aparece o nome da categoria. O mesmo ocorre em outras categorias.
+
+A seguir, faremos a busca. Assim que clicarmos, a busca será carregada.
+
+@@06
+Construindo o cartão de entrada
+
+Antes de começarmos com o nosso FutureBuilder, precisamos de uma maneira de apresentar cada uma das entradas. Teremos um cartão com uma imagem, título, descrição e localizações.
+Criando os Cartões
+Para isso, precisaremos do componente adicional EntryCard. Este componente ficará dentro da pasta "components" e seu arquivo será chamado de entry_card.dart. Ele também terá a estrutura básica de um StatelessWidget do Flutter.
+
+import 'package:flutter/material.dart';
+
+class EntryCard extends StatelessWidget {
+const EntryCard({ Key? key }) : super(key: key);
+
+    @override
+    Widget build(BuildContext context) {
+        return Container();
+    }
+}
+COPIAR CÓDIGO
+No entanto, uma vez que o FutureBuilder retornará uma lista de Entries (entradas), o EntryCard receberá basicamente uma Entry (entrada). Portanto, à direita da key, vamos adicionar o required this.entry, que será um final Entry entry, adicionado na linha de baixo.
+
+Por fim, vamos importar o entry da pasta "models".
+
+import 'package:flutter/material.dart';
+import 'package: hyrule/domain/models/entry.dart';
+
+class EntryCard extends StatelessWidget {
+const EntryCard({ Key? key, required this.entry }) : super(key: key);
+    final Entry entry;
+
+    @override
+    Widget build(BuildContext context) {
+        return Container();
+    }
+}
+COPIAR CÓDIGO
+A partir dessa entrada, podemos preencher as informações do cartão.
+
+Qual será a estrutura desse cartão? Ele será um Card, portanto vamos substituir o return Container() do build por um return Card().
+
+Entre os parênteses dele haverá um child. A partir desse child, teremos a primeira sessão, que será dividida em duas partes:
+
+A parte de cima, onde nós temos a imagem, título e descrição;
+A parte de baixo, onde as localizações serão apresentadas.
+Podemos adicionar ao child um Column(), que terá entre seus parênteses um children, que será uma lista de Widget (<Widget>[]).
+
+O primeiro item entre os colchetes será um Row(), porque na parte de cima do cartão temos a imagem à esquerda. Já o título e a descrição estão à direita e serão um Column.
+
+Começando pelo nosso Row(), ele receberá entre parênteses um children com uma lista de Widgets (<Widget>[]). Dentro do Row() — ou seja, entre os colchetes da lista —, o primeiro item será a imagem por meio de um Image.network(), porque vamos buscar a imagem da internet. No lugar de src, usaremos entry.image, que é a URL da imagem.
+
+Como elemento secundário, abaixo do Image.network() teremos outro Column() com um children e uma lista de Widgets. Entre os colchetes da lista teremos dois Text()s: o primeiro receberá entry.name, e o segundo texto receberá entry.description.
+
+class EntryCard extends StatelessWidget {
+const EntryCard({ Key? key, required this.entry }) : super(key: key);
+    final Entry entry;
+
+    @override
+    Widget build(BuildContext context) {
+        return Card(
+            child: Column(
+                children: <Widget>[
+                    Row(
+                        children: <Widget>[
+                            Image.network(entry.image),
+                            Column(children: <Widget>[
+                                Text(entry.name),
+                                Text(entry.description),
+                            ],) // <Widget>[] // Column
+                        ], // <Widget>[]
+                    ), // Row
+                ], // <Widget>[]
+            ), // Column
+        ); // Card
+    }
+}
+COPIAR CÓDIGO
+Abaixo dos parênteses da Row(), teremos um Wrap(). Ele possuirá como filho (children) uma lista de Chips. Os Chips são as tags que serão apresentadas posteriormente com a localização e que possuem estilização própria, a qual adicionaremos posteriormente.
+
+Ou seja, o Wrap() precisaria de um children, que será uma lista de Widget (<Widget>[]). No entanto, em vez de uma lista comum, ela precisa de uma lista de filhos.
+
+Nós já temos essa lista. Se adicionarmos o entry e um ponto nessa children, veremos na lista de sugestões do editor que temos a função commonLocationsConverter().
+
+Ela é uma lista de Strings que quando é salva no banco de dados, precisa ser uma String única. Com isso, precisamos converter de uma String para uma lista de Strings.
+
+Essa função nos retorna uma lista. Podemos iterar sobre essa lista, e adicionar um Chip baseado em cada um dos valores dessa lista de Strings.
+
+Então, após adicionar nossa função entry.commonLocationsConverter(), adicionaremos um .map((e) => ), pois queremos o mapeamento dela. Para cada elemento, desejamos retornar um Chip(). Entre seus parênteses, o Chip() precisa de um label que será um Text() com o valor do elemento e entre seus parênteses.
+
+Após o Chip(), temos que enviar um .toList(). Ou seja, vamos adicionar esse método à direita dos parênteses que finalizam o map().
+
+Vamos indentar o código para enxergar melhor o que está acontecendo.
+
+class EntryCard extends StatelessWidget {
+const EntryCard({ Key? key, required this.entry }) : super(key: key);
+    final Entry entry;
+
+    @override
+    Widget build(BuildContext context) {
+        return Card(
+            child: Column(
+                children: <Widget>[
+                    Row(
+                        children: <Widget>[
+                            Image.network(entry.image),
+                            Column(children: <Widget>[
+                                Text(entry.name),
+                                Text(entry.description),
+                            ],) // <Widget>[] // Column
+                        ], // <Widget>[]
+                    ), // Row
+                    Wrap(
+                        children: entry.commonLocationsConverter().map(
+                            (e) => Chip(
+                                label: Text(e),
+                            ), // Chip
+                        ).toList(),
+                    ), // Wrap
+                ], // <Widget>[]
+            ), // Column
+        ); // Card
+    }
+}
+COPIAR CÓDIGO
+Com isso, temos o nosso Entry Card. Com ele, podemos montar o Future Builder. E o resultado do Future Builder retornará para nós o Entry Card, que receberá uma entrada.
+
+Vamos acrescentar um detalhe final: essa entrada deve ser clicável, portanto, devemos envolver o nosso Row() (lugar em que poderemos clicar) com um InkWell().
+
+Para isso, vamos posicionar o cursor na linha inicial da Row(), pressionar "Ctrl+." e selecionar a opção "Wrap with widget" para envolvê-lo com um widget(). Ele criará transformará o Row() em seu child.
+
+Vamos renomear esse widget() para InkWell().
+
+Vamos pressionar "Enter" e abrir espaço da primeira linha dentro dos parênteses desse InkWell() para adicionar um onTap() {}. Este irá navegar para uma outra lista de detalhes e serve apenas para preparar a função onTap, já que temos essa opção.
+
+O child, na verdade, não pode ser um Row() e sim um Ink() para ter o efeito de InkWell(). Portanto, selecionaremos novamente o Row() com o cursor para envolvê-lo em mais um widget(), que renomearemos como Ink().
+
+class EntryCard extends StatelessWidget {
+const EntryCard({ Key? key, required this.entry }) : super(key: key);
+    final Entry entry;
+
+    @override
+    Widget build(BuildContext context) {
+        return Card(
+            child: Column(
+                children: <Widget>[
+                    Inkwell(
+                        onTap() {},
+                        child: Ink(
+                            child: Row(
+                                children: <Widget>[
+                                    Image.network(entry.image),
+                                    Column(children: <Widget>[
+                                        Text(entry.name),
+                                        Text(entry.description),
+                                    ],) // <Widget>[] // Column
+                                ], // <Widget>[]
+                            ), // Row
+                        ), //Ink
+                    ), // Inkwell
+                    Wrap(
+                        children: entry.commonLocationsConverter().map(
+                            (e) => Chip(
+                                label: Text(e),
+                            ), // Chip
+                        ).toList(),
+                    ), // Wrap
+                ], // <Widget>[]
+            ), // Column
+        ); // Card
+    }
+}
+COPIAR CÓDIGO
+Com isso, finalmente concluímos o Entry Card.
+
+@@07
+Fazendo a conexão com a API
+
+Agora, podemos exibir o resultado da API no componente Results por meio de um FutureBuilder.
+Conectando à API
+Dentro do arquivo results.dart, necessitamos receber as informações da API para implementar o FutureBuilder. E para estabelecer a conexão com a API, precisamos utilizar o Controller.
+
+Abaixo da final String category, podemos criar uma instância final ApiController chamada apiController. Ela receberá uma instância ApiController() porque precisamos chamar a função dentro dela, a qual nos retornará uma Future.
+
+No entanto, agora temos um problema — nosso resultado não é mais constante. Podemos deletar a palavra-chave const do construtor const Results().
+
+Abaixo dos parênteses da AppBar(), precisamos declarar e exibir um body que será um FutureBuilder(). Antes de inserir o builder como recomendado, vamos deletar a sugestão do editor e declarar primeiro a future, pois ela virá do ApiController.
+
+Portanto, vamos chamar apicontroller.getEntriesByCategory(). Entre seus parênteses, receberemos a category nesta página, como propriedade.
+
+Abaixo da future, precisamos montar nosso builder. Ao escrever "builder:", ele já nos fornece a opção { context, snapshot } que abre um bloco de chaves vazio.
+
+class Results extends StatelessWidget {
+Results({ Key? key, required this.category }) : super(key: key);
+  final String category;
+    
+    final ApiController apiController = ApiController();
+    
+    @override
+    Widget build(BuildContext context) {
+        return SafeArea(
+            child: Scaffold(
+                appBar: AppBar(
+                    title: Text(categories[category]!),
+                ), // AppBar
+                body: FutureBuilder(
+                    future: apiController.getEntriesByCategory(category: category),
+                    builder: (context, snapshot) {}
+                ), // FutureBuilder
+            ), // Scaffold
+        ); // SafeArea
+    }
+}
+COPIAR CÓDIGO
+Antes de começar a utilizar o snapshot e verificar o ConnectionState, queremos definir um retorno padrão, para evitar que nosso Builder seja interrompido. Para isso, entre as chaves do builder, o retorno padrão será um Container() vazio.
+
+Acima do return, precisamos verificar um comando switch ecase. Portanto, escreveremos "switch" e selecionaremos "switch statement" para implementar essa estrutura.
+
+A expressão que queremos validar é o que provém deste snapshot.connectionState, portanto, vamos adicioná-la entre os parênteses do switch().
+
+Nosso primeiro ConnectionState será o .active, portanto vamos apagar o value do case e adicioná-lo em seu lugar. Esse active não terá nada, mesmo ativo. Então, podemos manter somente o break e pular essa parte.
+
+O próximo caso que temos é o ConnectionState.none, portanto, vamos adicionar um case com ele abaixo do primeiro. Não há nada para ele executar, então, adicionaremos apenas o break.
+
+class Results extends StatelessWidget {
+Results({ Key? key, required this.category }) : super(key: key);
+  final String category;
+    
+    final ApiController apiController = ApiController();
+    
+    @override
+    Widget build(BuildContext context) {
+        return SafeArea(
+            child: Scaffold(
+                appBar: AppBar(
+                    title: Text(categories[category]!),
+                ), // AppBar
+                body: FutureBuilder(
+                    future: apiController.getEntriesByCategory(category: category),
+                    builder: (context, snapshot) {
+                        switch (snapshot.connectionState) {
+                            case ConnectionState.active:
+                                break;
+                            case ConnectionState.none:
+                                break;
+                            default:
+                        }
+                        return Container();
+                    },
+                ), // FutureBuilder
+            ), // Scaffold
+        ); // SafeArea
+    }
+}
+COPIAR CÓDIGO
+O próximo case será o ConnectionState.done, com o qual realmente exibiremos algo na tela. Porém, antes de exibir algo, precisamos validar se o snapshot realmente virá com alguma informação. Portanto, faremos uma declaração if dentro desse case, verificando se o snapshot.hasData, ou seja, se snapshot possui alguma informação.
+
+Se ele tiver, que é o que esperamos, ele retornará para nós um ListView.builder(). Entre seus parênteses, o itemBuilder precisa receber dois valores: um context e um index, ambos entre novos parênteses.
+
+Utilizaremos esse index para iterar sobre a lista de dados que recebemos da API. Como se trata de uma lista de entradas, precisamos iterar e depois percorrê-la. Por isso, passamos o índice também ao itemBuilder.
+
+À direita do (context, index), adicionaremos uma seta => e retornaremos um EntryCard(). Entre seus parênteses, adicionaremos a entrada que iremos receber: o entry: snapshot.data![] na posição do index. Ele nos retornará esse ItemBuilder.
+
+O data garante que receberemos algo, porque já fizemos a validação com o hasData.
+
+O nosso último caso será o ConnectionState.waiting, onde "waiting" corresponde ao momento de carregamento. Quando ele estiver carregando, seu retorno será a const Center(child: CircularProgressIndicator()), informando que está carregando.
+
+class Results extends StatelessWidget {
+Results({ Key? key, required this.category }) : super(key: key);
+  final String category;
+    
+    final ApiController apiController = ApiController();
+    
+    @override
+    Widget build(BuildContext context) {
+        return SafeArea(
+            child: Scaffold(
+                appBar: AppBar(
+                    title: Text(categories[category]!),
+                ), // AppBar
+                body: FutureBuilder(
+                    future: apiController.getEntriesByCategory(category: category),
+                    builder: (context, snapshot) {
+                        switch (snapshot.connectionState) {
+                            case ConnectionState.active:
+                                break;
+                            case ConnectionState.none:
+                                break;
+                            case ConnectionState.done:
+                                if(snapshot.hasData) {
+                                    return ListView.builder(itemBuilder: (context, index) => EntryCard (entry: snapshot.data! [index]));
+                                }
+                            case ConnectionState.waiting:
+                                return const Center(child: CircularProgressIndicator(),);
+                            default:
+                        }
+                        return Container();
+                    },
+                ), // FutureBuilder
+            ), // Scaffold
+        ); // SafeArea
+    }
+}
+COPIAR CÓDIGO
+Salvaremos os resultados do código. Vamos ver se está funcionando agora. No emulado, clicaremos em "Creatures". Com isso, a página "Creatures" será exibida, com as imagens das criaturas. Apesar dos textos se mostrarem fora de formato, vimos que a aplicação está conseguindo carregar as informações.
+
+Faremos um pequeno ajuste para podermos visualizar as imagens e o texto. Acessando o arquivo entry_card.dart veremos a linha Column(children: <Widget>[ dentro da Row().
+
+Vamos quebrar a linha entre Column( e children: <Widget>[, adicionando uma linha vazia entre ambas. Nessa linha vazia, criaremos um crossAxisAlignment: CrossAxisAlignment.start.
+
+class EntryCard extends StatelessWidget {
+const EntryCard({ Key? key, required this.entry }) : super(key: key);
+    final Entry entry;
+
+    @override
+    Widget build(BuildContext context) {
+        return Card(
+            child: Column(
+                children: <Widget>[
+                    Inkwell(
+                        onTap() {},
+                        child: Ink(
+                            child: Row(
+                                children: <Widget>[
+                                                                    Image.network(entry.image),
+                                    Column(
+                                                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                                                            children: <Widget>[
+                                        Text(entry.name),
+                                        Text(entry.description),
+                                    ],) // <Widget>[] // Column
+                                ], // <Widget>[]
+                            ), // Row
+                        ), //Ink
+                    ), // Inkwell
+                    Wrap(
+                        children: entry.commonLocationsConverter().map(
+                            (e) => Chip(
+                                label: Text(e),
+                            ), // Chip
+                        ).toList(),
+                    ), // Wrap
+                ], // <Widget>[]
+            ), // Column
+        ); // Card
+    }
+}
+COPIAR CÓDIGO
+Com isso, conseguimos mais ou menos ver o título. Temos, portanto, o título e a descrição aparecendo. Eles estão meio desconfigurados por conta do tamanho, mas estamos conseguindo capturar as informações.
+
+Reforçando que não precisamos nos preocupar com a cor do botão ainda. Nosso foco é conseguir exibir as informações. Se conseguimos exibir a imagem, as localizações, o título e a descrição cumprimos nossa tarefa.
+
+A etapa seguinte é clicar nesse cartão e realizar o redirecionamento para outro lugar. Trataremos disso na próxima aula.
+
+@@08
+Entendendo a conexão entre ApiController e página de resultados
+
+Você foi contratado(a) para trabalhar na Meteora, uma loja de roupas que está desenvolvendo um aplicativo de e-commerce usando Flutter. Sua gerente, Roberta, pediu que você conectasse o ApiController com a página de resultados, para que quando um(a) usuário(a) selecionasse uma categoria de produto, o aplicativo fosse capaz de retornar as principais entradas dessa categoria.
+A Roberta encaminhou a você o código de base abaixo para trabalhar:
+
+class Results extends StatelessWidget {
+Results({ Key? key, required this.category }) : super(key: key);
+  final String category;
+
+  final ApiController apiController = ApiController();
+
+  @override
+  Widget build(BuildContext context){
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(categories[category]!),
+        ),
+        body: FutureBuilder(
+          future: apiController.getEntriesByCategory(category: category),
+          builder: (context, snapshot) {
+            switch (snapshot.connectionState) {
+              case ConnectionState.active:
+                break;
+
+              case ConnectionState.none:
+                break;
+
+              case ConnectionState.done:
+                if(snapshot.hasData) {
+                  return ListView.builder(itemBuilder: (context, index) => EntryCard(entry: snapshot.data![index]));
+                }
+
+              case ConnectionState.waiting:
+                return const Center(child: CircularProgressIndicator(),);
+              default:
+            }
+            return Container();
+          },
+        ),
+      ),
+    );
+  }
+}
+COPIAR CÓDIGO
+A partir da sua compreensão deste código, qual é o principal papel da classe ApiController neste contexto?
+
+
+Alternativa correta
+É uma classe que serve para criar os cards de cada produto.
+ 
+Alternativa correta
+É a classe que permite selecionar uma categoria de produtos.
+ 
+Alternativa correta
+É responsável por conectar-se com a API e trazer todas as categorias de produtos.
+ 
+Alternativa correta
+É responsável por trazer as entradas da categoria selecionada de produtos a partir da conexão com uma API.
+ 
+A classe ApiController é usada no código para trazer as entradas da categoria selecionada de produtos da API.
+
+@@09
+Faça como eu fiz: conectando as camadas
+
+Hora da prática!
+Para mostrar as informações da API siga os passos:
+
+Para criar a camada de presenter, crie a pasta screens e dentro dela a pasta components;
+Altere o ThemeData para mostrar o tema escuro e altere o esquema de cores para azul;
+Crie as telas de categorias e resultados com a estrutura básica de tela;
+Crie os componentes de categoria e cartão de entrada;
+Para relacionar os dados da API com a maneira que a informação precisa ser mostrada em tela, crie um dicionário dentro de utils/consts;
+Preencha a tela de categoria com as informações do dicionário e os componentes;
+Na tela de resultados utilize o ApiController para fazer a conexão com a API;
+Mostre os resultados com o componente de cartão de entrada.
+Vamos lá?
+
+Você pode conferir o gitHub ou ver o passo a passo para mostrar os resultados da API:
+Alterando o ThemeData:
+Defina o tema do aplicativo com a propriedade ThemeData(), passando colorSchemeSeed como Colors.blue e brightness como Brightness.dark.
+Defina o valor de useMaterial3 como true.
+Defina a propriedade home como Categories()
+Para o dicionário:
+Crie o arquivo categories.dartdentro de consts;
+Crie uma constante imagePath que contém a parte inicial do caminho para as imagens;
+Crie um Map<String, String> categories que transforma a chave de uma entrada de lowercase para um valor em capitalize;
+Criando a página de categorias:
+Crie uma pasta chamada screens dentro de lib;
+Crie um arquivo chamado categories.dart;
+Faça a estrutura básica de SafeArea e Scaffold com AppBar;
+No corpo crie um GridView com um crossAxisCount 2 e espaçamentos horizontais e verticais de 16px;
+Como filho do GridView, itere sobre o dicionário devolvendo um componente de categoria passando como valor uma chave do dicionário;
+Criando o componente de categoria:
+Dentro de screens crie uma pasta chamada components;
+Crie um stateless widget dentro de components que recebe como parâmetro uma String categoria;
+No corpo do widget coloque um Column com um InkWell que na função onTap redireciona o usuário para a página de resultados;
+O filho de InkWell é um Center com uma imagem que tem como caminho a constante imagePath e a categoria concatenada (não se esqueça de colocar .png no final do caminho).
+Como irmão de InkWell, coloque um Text buscando pelo dicionário a chave que é a String que recebemos no widget;
+Criando a página de resultados:
+Crie um arquivo chamado results.dart dentro de screens;
+Faça a estrutura básica de SafeArea e Scaffold com AppBar recebendo como parâmetro uma String category;
+O AppBar recebe com title a categoria do dicionário, passando como chave a categoria recebida no widget;
+Crie uma instância de ApiController;
+No body do Scaffold, crie um FutureBuilder que recebe como Future a função getEntriesByCategory do ApiController;
+Faça a validação padrão do ConnectionState de snapshot;
+Retorne um ListView.builder que monta um EntryCard que recebe como parâmetro o snapshot.data na posição de index;
+Criando o cartão de entrada:
+Crie um arquivo chamado entry_card.dart dentro de components;
+Crie um stateless widget que recebe como parâmetro um Entry entry;
+Utilize o componente do Flutter Card;
+Dentro de Card coloque um Column;
+O primeiro item de Column deve ser um InkWell com a função onTap vazia;
+O filho deve ser um Ink que tem como filho um Row;
+O primeiro filho de Row é uma imagem que tem como caminho entry.image;
+O segundo filho de Row é um Column que vai ter dois Texts:
+O primeiro é o nome da entrada;
+O segundo é a descrição da entrada;
+O segundo filho de Column é um Wrap;
+Dentro de Wrap, na propriedade children, devolva uma lista de commonLocations utilizando a função commonLocationsConverter();
+A lista deve ser iterada devolvendo um Chip com a propriedade label sendo um Text com o valor iterado.
+Pronto, temos as estruturas das páginas de categorias e resultados completadas!
+
+https://github.com/alura-cursos/3117-clean_architecture/archive/refs/heads/Aula5.zip
+
+@@10
+O que aprendemos?
+
+Nessa aula, você aprendeu como:
+Adicionar mais informações dentro da camada de utils;
+Importância da funcionalidade antes da estilização de componentes e páginas;
+Integrar as telas com a API utilizando a camada de controller.
+Parabéns por ter concluído mais uma aula. Bons estudos!
