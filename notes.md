@@ -2891,3 +2891,624 @@ Adicionar mais informações dentro da camada de utils;
 Importância da funcionalidade antes da estilização de componentes e páginas;
 Integrar as telas com a API utilizando a camada de controller.
 Parabéns por ter concluído mais uma aula. Bons estudos!
+
+#### 19/11/2023
+
+@06-Layout e integração de camadas
+
+@@01
+Projeto da aula anterior
+
+Você pode revisar o seu código e acompanhar o passo a passo do desenvolvimento do nosso projeto e, se preferir, pode baixar o projeto da aula anterior.
+Bons estudos!
+
+https://github.com/alura-cursos/3117-clean_architecture/archive/refs/heads/Aula5.zip
+
+@@02
+Salvando uma entrada
+
+Após clicarmos em um cartão de uma entrada, precisamos ser direcionados para a página de detalhes daquela entrada. Para isso, criaremos uma nova página. Portanto, na pasta screens, criaremos o arquivo details.dart.
+screens
+details.dart
+A estrutura básica que já montamos várias vezes é o Flutter Stateless Widget (Widget Stateless do Flutter), que precisa ser importado do material.dart.
+
+Arquivo details.dart no repositório do GitHub
+import 'package:flutter/material.dart';
+
+class Details extends StatelessWidget {
+const Details({ Key? key }): super(key: key);
+
+@override 
+Widget build (BuildContext context) {
+    return Container();
+}
+}
+COPIAR CÓDIGO
+Dentro dessa página de detalhes, precisamos preenchê-la com as informações de uma entrada. As informações da entrada devem ser passadas tanto para o cartão quanto para os detalhes, a página de detalhes.
+
+Será necessário realizar na linha 4: required this.entry, criando a instância dele abaixo final Entry entry, precisamos importar o arquivo correspondente.
+
+Ao invés de retornar um container, retorno SafeArea, child, scaffold, o scaffold vai ter um appBar, que tem um título. Este título será um texto. O texto "Detalhes" deve ficar centralizado. Portanto, centerTitle: true.
+
+details.dart
+import 'package: flutter/material.dart';
+
+import '../domain/models/entry.dart';
+
+class Details extends StatelessWidget {
+const Details({ Key? key, required this.entry }) : super(key: key); 
+    final Entry entry;
+
+@override
+Widget build(BuildContext context){
+return SafeArea(
+child: Scaffold(
+appBar: AppBar(
+title: Text("Detalhes"),
+centerTitle: true,
+), // AppBar
+), // Scaffold
+); // SafeArea
+} 
+}
+COPIAR CÓDIGO
+Temos basicamente a estrutura da página de detalhes pronta. Agora, ao clicar no cartão, precisamos ser direcionados para essa página de detalhes.
+
+Arquivo entry_card.dart no repositório do GitHub
+Portanto, no arquivo entry_card.dart, onde temos a função onTap, vamos chamar Navigator.push(context, MaterialPageRoute).
+
+Onde o route na verdade vai ser o MaterialPageRoute. Nosso builder, é um context que vai retornar exatamente o details passando uma entrada.
+
+entry_card.dart
+# código omitido
+
+onTap: (){
+    Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => Details(entry: entry),
+            ));
+},
+
+# código omitido
+COPIAR CÓDIGO
+Vamos verificar se está funcionando. Ao clicar no cartão do lado direito, somos direcionados para a página de detalhes.
+
+Agora precisamos preencher detalhes com as informações que vêm da entrada. Precisamos do título, precisamos verificar rapidamente no Figma, precisamos do título, das localizações, da imagem, da descrição e, por fim, de um floating action button.
+
+O primeiro foco será no floating action button, que é bastante importante para nós.
+
+Floating Action Button
+Ao clicar no floating action button, precisamos salvar uma entrada. Esta precisa ser salva, isto é, vamos ter que acessar nosso banco de dados. Para isso, podemos voltar para o nosso editor de código e usar um DaoController.
+
+Dentro da página de detalhes, logo abaixo da instância de entry, criaremos outra instância final, chamada DaoController.
+
+details.dart
+# código omitido
+
+final DaoController daoController = DaoController();
+
+# código omitido
+COPIAR CÓDIGO
+Agora, precisamos adicionar, depois do AppBar, um floating action button.
+
+Na função onPressed, precisamos interagir com esse DAO. Vale lembrar que estamos recebendo uma entrada dentro da página de detalhes. Portanto, essa mesma entry é a que podemos usar para salvar no banco de dados.
+
+Primeiro, é preciso corrigir um erro que está ocorrendo na construção dos detalhes (removemos o const), pois agora vamos instanciar o controle dentro do widget.
+
+details.dart
+Details({Key? key, required this.entry}) : super(key: key);
+COPIAR CÓDIGO
+Agora, dentro de onPressed, chamaremos o nosso DAO controller. Queremos salvar uma entrada, então saveEntry passando a entrada.
+
+Agora, na página de detalhes, conseguimos passar realmente o valor dessa entrada para salvar no banco de dados. Testaremos para ver se esse botão vai funcionar.
+
+details.dart
+# código omitido
+
+floatingActionButton: FloatingActionButton(
+    onPressed: () {
+        daoController.saveEntry(entry: entry);
+                
+# código omitido
+COPIAR CÓDIGO
+Abrimos o Debug Console, que é onde vamos realmente ver as informações e se ocorrerá algum problema no banco de dados ou não. Vamos voltar à página de detalhes no emulador, porque desejamos garantir que realmente entraremos em uma entrada.
+
+Escolhemos uma criatura clicando na borboleta azul e selecionamos o floating action button no canto inferior direito (ícone de quadrado na cor azul). Se nada der errado, provavelmente isso foi salvo no banco de dados.
+
+Vamos confirmar isso realmente depois que criarmos a página de favoritos. No entanto, agora precisamos preencher o restante da página de detalhes.
+
+@@03
+Preenchendo os detalhes
+
+Agora, finalizamos a tela de detalhes. Antes de completar com as informações faltantes, faremos uma breve correção na barra de aplicativos onde definimos CenterTitle: true.
+Na página de detalhes, o título da barra de aplicativos (AppBar) não ficará centralizado, mas à esquerda, assim como fizemos na tela de resultados.
+
+O pequeno ajuste a ser feito é remover o centerTitle e também deixar o título, o texto, como constante. Podemos focar no corpo desta página de detalhes.
+
+details.dart
+# código omitido
+
+title: const Text("Detalhes"),
+
+# código omitido
+COPIAR CÓDIGO
+Agora focaremos no corpo desta página de detalhes.
+
+Corpo da página de Detalhes
+O body terá uma column, onde serão inseridas as informações de título, localização, imagem e descrição.
+
+Então, column, children, será uma lista de widget e a primeira entrada que temos é um texto entry.name. Podemos salvar e verificar o resultado.
+
+details.dart
+# código omitido
+
+body: Column(children: <Widget>[
+    Text(entry.name),
+],),
+
+# código omitido
+COPIAR CÓDIGO
+O próximo será o wrap. que terá um children e uma lista de chips que podemos usar.
+
+Assim como fizemos para o entry_card, podemos simplesmente usar o nosso entry.commonLocations converter, e dessa lista, fazer um mapa. Para cada elemento dentro desse mapa, retornaremos um chip com o label sendo um texto que recebe esse elemento. Onde acaba o wrap, colocamos o toList.
+
+details.dart
+# código omitido
+
+body: Column(children: <Widget>[
+Text(entry.name),
+Wrap(children: entry.commonLocationsConverter().map((e) => Chip(label: Text(e))).toList(),),
+
+# código omitido
+COPIAR CÓDIGO
+Podemos salvar e observar que a localização foi exibida no emulador do lado direito.
+
+Após o wrap, temos a imagem. A imagem virá da internet, então é .network, no lugar de source, é entry.image que é onde tem a URL da imagem. Por último, um Text, passando entry.description.
+
+details.dart
+# código omitido
+
+Image.network(entry.image),
+Text(entry.description),
+
+# código omitido
+COPIAR CÓDIGO
+Ao salvar o arquivo, o emulador atualizará automaticamente e agora todas as informações estão sendo exibidas na tela.
+
+Porém, precisamos identificar onde as informações que salvamos serão apresentadas. Concluímos os detalhes e conseguimos verificar se as informações estão sendo recebidas corretamente.
+
+Conclusão
+Não se preocupe com a estilização ou com a cor do botão. Primeiro precisamos garantir que as informações estão sendo passadas de componente para componente, de página para página, e se realmente estamos conseguindo salvar as informações do banco.
+
+Isto será confirmado quando fizermos a tela de favoritos.
+
+Até a próxima aula!
+
+@@04
+Mostrando favoritos na tela
+
+Para montarmos a página de favoritos, utilizamos um truque: a estrutura é idêntica à da página de resultados.
+Montando a página de favoritos
+Portanto, criamos um novo arquivo dentro da pasta de screens, nomeando-o como favorites.dart. Para isso, clicamos com o botão direito na pasta screens e escolhemos a opção "New File" (em portugês, "novo arquivo")
+
+Na página de favoritos, o que fazemos é copiar todo o conteúdo da página de resultados (results.dart). Portanto, copiamos desde os imports no topo até o final do arquivo, que totaliza 44 linhas, e colamos dentro do arquivo favorites.dart.
+
+A seguir, substituímos as informações necessárias. Por exemplo, o nome da classe não será mais results, mas sim, favorites. Na linha seguinte também alteramos Results para Favorites.
+
+Arquivo favorites.dart no repositório do GitHub
+# código omitido
+
+class Favorites extends StatelessWidget {
+Favorites({ Key? key }) : super(key: key);
+
+# código omitido
+COPIAR CÓDIGO
+Nos imports, em vez de utilizar o ApiController, devemos importar o nosso DaoController, pois agora queremos acessar o banco de dados. Portanto, removemos o import do ApiController (que era o segundo import) e substituímos a instância de ApiController por final DaoController.
+
+favorites.dart
+import 'package:flutter/material.dart';
+import 'package:hyrule/controllers/dao_controller.dart';
+import 'package:hyrule/screens/components/entry_card.dart';
+
+class Favorites extends StatelessWidget {
+Favorites({ Key? key }) : super(key: key);
+
+    final DaoController daoController = DaoController();
+
+# código omitido
+COPIAR CÓDIGO
+Dentro do Future no FutureBuilder, em vez de passar um ApiController, passamos um DaoController e chamamos a função getSavedEntries para obtermos todas as entradas que existem dentro de Favoritos no banco de dados.
+
+Para isso, removemos tudo após o future: referente à ApiController.
+
+favorites.dart
+# código omitido
+
+body: FutureBuilder(
+future: daoController.getSavedEntries(),
+builder: (context, snapshot) {
+switch (snapshot.connectionState) {
+case ConnectionState.active:
+break;
+
+# código omitido
+COPIAR CÓDIGO
+Salvamos a página.
+
+A estrutura é basicamente a mesma. Para acessar essa página de favoritos, no app bar (barra superior) de cada uma das páginas, com exceção da página de detalhes, teremos um ícone de favoritos à direita.
+
+Podemos adicionar esse ícone através da propriedade actions no appBar. Vamos começar desde categories e depois na página de Results, adicionando na barra superior, o ícone de favoritos.
+
+No arquivo categories.dart , colocaremos o SliverGridDelegate em gridDelegate, que ele solicita para ser const, tendo apenas ajustes rápidos.
+
+categories.dart
+# código omitido
+
+gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        
+# código omitido
+            ),
+
+# código omitido
+COPIAR CÓDIGO
+No appBar, adicionamos uma propriedade actions, que será uma lista de widgets. Dentro de actions, adicionaremos um IconButton. Na função onPressed, já sabemos o que fazer, passamos para a página de favoritos.
+
+Assim, realizamos um Navigator.push. O context já está disponível, o route será um MaterialPageRoute, e no builder:, passamos context, que será usado para instanciar Favorites().
+
+categories.dart
+# código omitido
+
+actions: [
+IconButton(onPressed: (){
+Navigator.push(
+context,
+MaterialPageRoute(
+builder: (context) => Favorites(),
+));
+
+# código omitido
+COPIAR CÓDIGO
+No entanto, não precisamos passar a categoria, um ajuste que ficou faltando. Vamos remover category dentro de favorites.dart.
+
+Agora, dentro do texto, não precisamos mais de category. Podemos simplesmente receber no app bar o título, que é "Itens salvos". Lembrando que o texto será uma constante.
+
+favorites.dart
+# código omitido
+
+    title: const Text("Itens salvos"),
+),
+
+# código omitido
+COPIAR CÓDIGO
+Logo após dentro da classe, removemos required this.category e na parte superior podemos excluir o import de categories.dart.
+
+favorites.dart
+# código omitido
+
+class Favorites extends StatelessWidget {
+Favorites({ Key? key }) : super(key: key);
+
+# código omitido
+COPIAR CÓDIGO
+Salvamos a página de favoritos e voltamos para a página categories.dart.
+
+Agora sim, dentro da nossa página de favoritos, não precisamos passar nada. Ao final da linha, inserimos ponto e vírgula. O ícone é Icons.bookmark.
+
+favorites.dart
+# código omitido
+
+actions: [
+IconButton(onPressed: (){
+Navigator.push(
+context,
+MaterialPageRoute(
+builder: (context) => Favorites(),
+));
+}, icon: const Icon(Icons.bookmark))
+
+# código omitido
+COPIAR CÓDIGO
+Podemos testar agora para ver se funcionou.
+
+No emulador do lado direito, estamos na página "Detalhes". Clicamos na seta no canto superior esquerdo da página para voltarmos para a página "Creatures" e voltamos mais uma para a página intitulada "Escolha uma categoria".
+
+Observem que temos o ícone de itens salvos no canto superior direito. Ao selecionarmos, observem que o código quebrou.
+
+O erro é devido ao intervalo dos itens que serão construídos dentro do ListView.builder. Na verdade, isso foi um erro durante a construção de Results, pois esquecemos de definir exatamente a quantidade de itens, ou seja, o itemCount, neste ListView.builder.
+
+Então, vamos corrigir isso nas páginas favorites e Results. No final, após construir a entrada e logo após o itemBuilder, inserimos uma vírgula e, em seguida, definimos o itemCount como snapshot.data!.length.
+
+favorites.dart
+# código omitido
+
+case ConnectionState.done:
+if(snapshot.hasData) {
+return ListView.builder(itemBuilder: (context, index) => EntryCard
+(entry: snapshot.data![index]), itemCount: snapshot.data!.length,);
+
+# código omitido
+COPIAR CÓDIGO
+Dessa forma, obtemos exatamente a quantidade de itens que estão no banco de dados.
+
+Agora sim, podemos testar o nosso aplicativo novamente clicando no ícone de favoritos do lado superior direito na página "Escolha uma categoria".
+
+Confira como ficou a nossa borboleta! Conseguimos efetivamente armazenar a informação no banco de dados e também recuperá-la.
+
+Nosso próximo passo, após aprimorarmos a página de resultados, será a implementação da função de exclusão de uma entrada. Inclusive, vamos trabalhar em melhorias na página de resultados agora.
+
+Iremos alterar o nosso código na linha 31 do arquivo results.dart. No final do nosso builder, adicionamos: itemCount, snapshot.data!.length. Essa linha de código garante que não ocorra nenhum problema relacionado ao número de itens.
+
+results.dart
+# código omitido
+
+case ConnectionState.done:
+if(snapshot.hasData) {
+return ListView.builder(itemBuilder: (context, index) => EntryCard(entry: snapshot.data![index], isSaved: false,), itemCount: snapshot.data!.length,);
+}
+
+# código omitido
+COPIAR CÓDIGO
+Vamos analisar, mais uma vez, os nossos resultados. Clicamos em "Creatures" e depois no ícone de favoritos no canto superior direito da página de "Escolha a categoria".
+
+Tudo está carregando e funcionando conforme o esperado.
+
+Conclusão
+Com esses passos concluídos, estamos prontos para a próxima etapa: a implementação da função de deletar uma entrada.
+
+@@05
+Removendo uma entrada dos favoritos
+
+Agora, para remover uma entrada, vamos utilizar o widget Dismissable (removível por um gesto). Esse widget Dismissable precisa ficar dentro do cartão, uma vez que é o cartão que será removido.
+Removendo uma entrada
+Assim, dentro do arquivo entry_card.dart, logo depois de Child, como primeiro filho, antes de Column, colocaremos o widget Dismissable. Para isso, selecionamos a opção "wrap with widget" (embrulhar com widget).
+
+A primeira coisa que esse widget pede é uma key, que será um ValueKey, um valor inteiro, e se trata exatamente do nosso entry.id, um valor inteiro que já estamos recebendo dentro do nosso modelo.
+
+Depois que temos a key, precisamos ter uma ação. Digitamos onDismissed na linha seguinte, ele possui uma função que vai receber uma direção para realizar alguma ação.
+
+entry_card.dart
+return Card(
+child: Dismissible(
+key: ValueKey<int>(entry.id),
+onDismissed: (direction) {
+
+},
+child: Column(
+children: <Widget>[
+Inkwell(
+onTap: (){
+Navigator.push(
+context,
+MaterialPageRoute(
+builder: (context) => Details (entry: entry),
+)); // MaterialPageRoute
+},
+COPIAR CÓDIGO
+Por enquanto, não faremos nada. Eu só quero mostrar como será a interação com esse widget Dismissable. Após salvar o arquivo, vamos ver se está funcionando dentro do nosso item de favoritos.
+
+Funcionou corretamente, ao arrastarmos o cartão para um lado, ele foi removido. No entanto, temos um detalhe, ao retornar a uma página e abrir novamente Favoritos, o cartão continua lá pois não importamos nosso DAO dentro desse arquivo, dentro desse componente.
+
+Mas temos um outro detalhe, que é qualquer direção estar removendo o item. A ideia é que tenhamos uma direção específica.
+
+Caso vamos para a página de Criaturas (Creatures), voltando para Categorias e escolhendo uma criatura, também conseguimos aplicar o Dismissable para um cartão ao arrastarmos para o lado.
+
+O que não é desejado, pois queremos que esse Dismissable ocorra apenas quando ele for um item salvo. Portanto, podemos criar uma condição, um booleano, que podemos receber dentro do entry_card.dart, que vai validar se ele será um item salvo ou não.
+
+No construtor do EntryCard, adicionamos mais uma entrada: required this.isSaved e, em seguida, criamos a instância que ficará logo abaixo de Entry. Dessa forma, teremos a instância final bool isSaved.
+
+entry_card.dart
+# código omitido
+
+class EntryCard extends StatelessWidget {
+const EntryCard({Key? key, required this.entry, required this.isSaved}): super(key: key);
+  final Entry entry;
+  final bool isSaved;
+
+# código omitido
+COPIAR CÓDIGO
+Após salvar o EntryCard, enfrentamos alguns problemas.
+
+O primeiro problema que encontramos é que a página de criaturas, ou seja, a página da categoria que escolhemos na results.dart, ainda não possui a nossa implementação do Actions. Portanto, vamos corrigir esse problema rapidamente.
+
+Para fazer isso, vamos copiar o código da categoria, que já possui o Action pronto, do arquivo categories.dart. Copiamos da linha 16 até a linha 24. Na página results.dart, dentro de AppBar, iremos colar as nossas Actions. E importar a página de favoritos.
+
+results.dart
+title: Text(categories[category]!),
+actions: [
+IconButton(onPressed: (){
+Navigator.push(
+context,
+MaterialPageRoute(
+builder: (context) => Favorites(),
+));
+}, icon: const Icon(Icons.bookmark))
+],
+),
+COPIAR CÓDIGO
+O próximo erro que enfrentamos no arquivo results.dart é que o EntryCard agora requer um valor adicional, além do Entry. Estamos atualmente na página de resultados, que exibe informações sobre as criaturas obtidas da API, ou seja, não são informações armazenadas em nosso banco de dados.
+
+Portanto, devemos definir o valor de isSaved como FALSE, uma vez que as informações são provenientes da API e não estão salvas no banco de dados. Acrescentamos isso após o snapshot.data![index].
+
+results.dart
+# código omitido
+
+case ConnectionState.done:
+    if(snapshot.hasData) {
+        return ListView.builder(itemBuilder: (context, index) => EntryCard(entry: snapshot.data![index], isSaved: false,), itemCount: snapshot.data!.length,);
+    }
+
+# código omitido
+COPIAR CÓDIGO
+Salvamos o arquivo.
+
+No entanto, quando se trata dos favoritos (favorites.dart), os elementos estão salvos. As entradas que estão na lista de favoritos são aquelas que vêm do banco de dados. Portanto, a propriedade isSaved será definida como TRUE.
+
+favorites.dart
+# código omitido
+
+case ConnectionState.done:
+if(snapshot.hasData) {
+return ListView.builder(itemBuilder: (context, index) => EntryCard(entry: snapshot.data![index], isSaved: true,), itemCount: snapshot.data!.length,);
+}
+
+# código omitido
+COPIAR CÓDIGO
+Agora, precisamos validar esse verdadeiro ou falso dentro do nosso entry_card.dart. Uma propriedade do Dismissable que temos é exatamente o direction.
+
+Podemos passar se queremos que ele vá da esquerda para a direita, ou direita para a esquerda, vice-versa, para cima, para baixo, podemos mudar toda a direção. E queremos fazer o seguinte, vamos perguntar: isSaved? Se ele for salvo, fazemos um if ternário.
+
+Se o item for salvo, queremos que execute um DismissDirection.endToStart. Se estiver salvo, o movimento é end to start. Caso contrário, podemos definir Dismissed Direction.none como None, sem nenhum tipo de interação.
+
+entry_card.dart
+# código omitido
+
+child: Dismissible(
+direction: isSaved ? DismissDirection.endToStart :  DismissDirection.none,
+
+# código omitido
+COPIAR CÓDIGO
+Vamos testar agora e ver se funciona. O arquivo entry_card.dart está salvo.
+
+Agora estamos na categoria de criaturas no emulador do lado direito, onde temos várias delas. Vamos ver se conseguimos executar um Dismiss. Parece que não conseguimos realizar nenhum Dismiss.
+
+Vamos voltar agora para nossos favoritos clicando na seta de voltar no canto superior esquerdo e, em seguida, clicar no ícone de favoritos da página "Escolha uma categoria" no canto superior direito.
+
+Ótimo, temos a borboleta e ela possui o atributo Dismissable ao arrastarmos a imagem para o lado. Para finalizar completamente nosso entry_card.dart com o Dismissed, precisamos realizar uma chamada ao banco de dados.
+
+Portanto, uma instância final, onde DaoController é igual a DaoController.
+
+entry_card.dart
+# código omitido
+
+final DaoController daoController = DaoController();
+
+# código omitido
+COPIAR CÓDIGO
+Dentro do OnDismissed, chamamos o DaoController. Vamos inserir uma entrada. E esta entrada é exatamente o que estamos recebendo no momento em que criamos o EntryCard.
+
+Houve um erro de constante no topo, então vamos remover a palavra-chave constante que está antes de EntryCard({Key? key, required this.entry, required this.isSaved}): super(key: key);.
+
+entry_card.dart
+# código omitido
+
+key: ValueKey<int>(entry.id),
+onDismissed: (direction) {
+daoController.deleteEntry(entry: entry);
+},
+
+# código omitido
+COPIAR CÓDIGO
+Salvamos o arquivo. Ótimo! Recarregou e o item está salvo.
+
+Antes de testar, adicionamos mais alguns itens. Portanto, vamos retornar à página "Materials" e adicionar alguns materiais, incluindo a cenoura e uma erva. Para isso, clicamos na imagem que representa a cenoura e a erva e clicamos no botão azul quadrado no canto inferior direito.
+
+Agora, vamos verificar se eles estão em Favoritos clicando no ícone localizado no canto superior direito da página "Escolha uma categoria".
+
+Nossa erva e nossa cenoura estão salvas. Agora, removemos a borboleta executando um dismiss. Aparentemente, não ocorreu nenhum erro. Ao voltar, vamos verificar se a página Favoritos carrega novamente.
+
+Agora, a borboleta não está mais salva em nosso banco de dados. Com isso, concluímos todos os requisitos que prometemos para o cliente.
+
+@@06
+Faça como eu fiz: terminando detalhes do projeto
+
+Para concluir a nossa aplicação, precisamos ajustar ainda alguns detalhes:
+Cada EntryCard deve levar para uma nova tela (tela de detalhes);
+Crie uma tela para mostrar os detalhes de cada entrada;
+Crie um botão na AppBar da tela de Resultados, ele deve levar para uma nova tela (tela de Favoritos);
+Crie a tela de favoritos com a lista de entradas que o banco de dados retorna;
+No componente EntryCard agora utilize o Widget Dismissible para que a entrada possa ser arrastada da direita para a esquerda e seja excluída;
+Além disso, essa função só deve ser utilizada na tela de Favoritos, caso contrário não deve ser possível (Dica: utilizar uma variável booleana para controle).
+
+Continue com os seus estudos, e se houver dúvidas, não hesite em recorrer ao nosso fórum!
+
+@@07
+Aplicando arquitetura
+
+Agora chegou o momento de revisar tudo aquilo que vimos e aprendemos durante o curso.
+Pensando na arquitetura que vimos aqui, quais alternativas descrevem nossas decisões durante todo o desenvolvimento da aplicação?
+
+Dividimos a aplicação em camadas, seguindo um fluxo que pode variar de acordo com a necessidade.
+ 
+Alternativa correta
+Usar muitas ferramentas pode causar confusão, por isso melhor escolher uma ferramenta/biblioteca que resolve vários problemas de uma vez.
+ 
+Alternativa correta
+Dividimos a aplicação em camadas, partindo de um núcleo e expandindo conforme a necessidade.
+ 
+Tendo a base do aplicativo bem estruturada, nós temos uma visão mais clara de como conectar as pontas que moldam nossa aplicação.
+Alternativa correta
+Cada camada representa uma responsabilidade diferente. A camada mais importante é o núcleo ou domínio, onde ficam as regras de negócios.
+ 
+É importante deixar bem claro o que cada coisa faz/representa na aplicação. Antes de decidir qual a cor do botão, é importante que ele consiga realizar o seu objetivo.
+Alternativa correta
+Acoplamentos acontecem, mas tentamos garantir que apenas pequenos módulos precisem ser rescritos e não toda a aplicação caso a biblioteca/ferramenta pare de funcionar.
+ 
+Nunca estaremos 100% livres de acoplamentos, mas tentamos sempre isolar o máximo possível os casos de acoplamento. Principalmente evitar bibliotecas que fazem muitas coisas.
+
+@@08
+Mão na massa: estilizando o app
+
+Chegamos no momento que, às vezes, é o mais trabalhoso de todas as etapas de desenvolvimento: a estilização e refinamento de layout.
+
+Durante o curso, nos preocupamos exclusivamente em implementar as funcionalidades mais importantes da aplicação. Então, nossa prioridade era ter a lista de requisitos pronta para entrega e depois fazer ajustes finais. E, claro, o principal objetivo do curso foi ensinar a arquitetura limpa e como organizar as camadas domínio, dados, utils, controller e presenter (e não construir telas).
+
+A sua tarefa vai ser montar o layout em cima de tudo que já construímos até aqui. Você pode alterar a estrutura das telas e componentes criados até o momento. Tudo deve ser feito de acordo com a necessidade do que você precisa implementar para deixar o aplicativo mais próximo possível do Figma. Aproveite para consultá-lo à vontade.
+
+Lembrando que não existe uma única solução ou uma resposta correta. O mais importante é ter o layout mais parecido possível do que o Figma propõe.
+
+Bons estudos e bom divertimento!
+
+https://www.figma.com/file/LvA2b9QL2tdxLERamPddK1/Clean-Code?type=design&node-id=0-1&mode=design&t=R8sONMgCO4DA2MDS-0
+
+Vou deixar o link do commit desta atividade montada da minha maneira. Você pode usar o meu código como referência ou como comparação de soluções, mas é bem importante que você tente resolver esse desafio por conta para exercitar toda a trilha de estudos até o momento.
+Depois compartilhe o seu resultado com a gente, marcando a Alura nas redes sociais. Queremos ver o seu trabalho!
+
+https://github.com/alura-cursos/3117-clean_architecture/commit/155eccfc502f43d989c6e8251c862fa147d76929
+
+@@09
+O que aprendemos?
+
+Nessa aula, você aprendeu a:
+Salvar uma entrada utilizando o Controller;
+Concluir a interface básica da aplicação;
+Finalizar a integração entre Controller e Presenter.
+Parabéns por ter concluído mais uma aula, bons estudos!
+
+@@10
+Projeto final
+
+Você pode baixar ou acessar o código-fonte do projeto final. Aproveite para explorá-lo e revisar pontos importantes do curso.
+Bons estudos!
+
+https://github.com/alura-cursos/3117-clean_architecture/archive/refs/heads/Aula6.zip
+
+https://github.com/alura-cursos/3117-clean_architecture/tree/Aula6
+
+@@11
+Conclusão
+
+Parabéns por concluir este curso!
+O que aprendemos?
+Vamos recapitular o que abordamos durante nossa jornada para desenvolver o aplicativo Hyrule. Ao final do projeto, concluímos também o desafio e entregamos toda a parte visual, tendo assim o aplicativo concluído.
+
+Neste aplicativo, temos a página de categorias, onde disponibilizamos várias opções para escolher dentro do compêndio. Se clicarmos, por exemplo, em "Creatures", encontramos as opções de criaturas que são baixadas diretamente de uma API.
+
+Ao clicar em uma criatura, é possível observar a descrição de cada entrada e temos a funcionalidade de adicionar uma nova entrada clicando no botão azul com quadrado branco menor dentro no canto inferior direito.
+
+Após adicionar uma entrada, podemos verificar se ela foi ou não adicionada em nosso banco de dados por meio da página de itens salvos. Lá, também encontramos as opções de apagar a entrada e visualizar todas as entradas que foram salvas em nosso banco de dados.
+
+Conseguimos visualizar todos os aspectos da arquitetura Clean, ou seja, a nossa forma adaptada de implementar a Clean Architecture em um projeto Flutter.
+
+Passamos por várias camadas, como a camada de núcleo, onde temos o domínio (arquivo domain). Discutimos como criar um modelo e as regras de negócios, que são interfaces.
+
+Avançamos para como obter os dados em data e como criar nosso banco de dados, utilizando bibliotecas como o floor. A criação da API foi feita utilizando o dio.
+
+Discutimos o acoplamento que essas bibliotecas causam, montamos os controllers para fazer a conexão com as telas e finalizamos montando as telas dentro do nosso desafio.
+
+Conclusão
+Esperamos que tenham gostado deste curso. Nos siga nas redes sociais, e nos marque e mostre seus projetos. Também temos um grupo de estudos no Discord onde sua participação será muito bem-vinda.
+
+Esperamos vê-los no próximo curso.
+
+Até breve!
